@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SecurePay Credit Portal - Secure Payment Management</title>
+    <meta
+      name="description"
+      content="Manage your credit payments securely with SecurePay. Complete KYC verification, add bank accounts, manage cards, and process transactions with bank-grade security."
+    />
+    <meta name="author" content="SecurePay" />
+    <meta name="theme-color" content="#0F172A" />
+
+    <meta
+      property="og:title"
+      content="SecurePay Credit Portal - Secure Payment Management"
+    />
+    <meta
+      property="og:description"
+      content="Manage your credit payments securely with SecurePay. Complete KYC verification, add bank accounts, manage cards, and process transactions with bank-grade security."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="SecurePay" />
+    <meta property="og:url" content="https://your-domain.example.com" />
+    <meta
+      property="og:image"
+      content="https://your-domain.example.com/placeholder.svg"
+    />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@SecurePay" />
+    <meta
+      name="twitter:title"
+      content="SecurePay Credit Portal - Secure Payment Management"
+    />
+    <meta
+      name="twitter:description"
+      content="Manage your credit payments securely with SecurePay. Complete KYC verification, add bank accounts, manage cards, and process transactions with bank-grade security."
+    />
+    <meta
+      name="twitter:image"
+      content="https://your-domain.example.com/placeholder.svg"
+    />
+    <meta name="robots" content="index,follow" />
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      function cleanupAttributes() {
+        document.querySelectorAll("[data-lov-id]").forEach((element) => {
+          element.removeAttribute("data-lov-id");
+          element.removeAttribute("data-lov-name");
+          element.removeAttribute("data-component-path");
+          element.removeAttribute("data-component-line");
+          element.removeAttribute("data-component-file");
+          element.removeAttribute("data-component-name");
+          element.removeAttribute("data-component-content");
+        });
+      }
+
+      // Run cleanup initially
+      cleanupAttributes();
+
+      // Set up MutationObserver to clean up dynamically added elements
+      const observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+          mutation.addedNodes.forEach(function (node) {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              cleanupAttributes();
+            }
+          });
+        });
+      });
+
+      // Start observing the document with the configured parameters
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+
+      // Optionally, you can disconnect the observer later if needed
+      // observer.disconnect();
+    </script>
+  </body>
+</html>
