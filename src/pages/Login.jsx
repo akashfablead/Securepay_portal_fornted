@@ -126,7 +126,7 @@ const Login = () => {
             </div>
 
             {/* Signup Link */}
-            <div className="text-center text-sm mt-2 text-muted-foreground">
+            {/* <div className="text-center text-sm mt-2 text-muted-foreground">
               Don’t have an account?{" "}
               <button
                 type="button"
@@ -135,7 +135,7 @@ const Login = () => {
               >
                 Sign Up
               </button>
-            </div>
+            </div> */}
 
             {/* Terms */}
             <p className="text-xs text-center text-muted-foreground mt-4">

@@ -133,6 +133,29 @@ const BankStatus = () => {
         </p>
       </div>
 
+      {/* Info Card */}
+      <Card className="bg-secondary/50">
+        <CardContent className="pt-4">
+          <div className="flex items-start gap-3">
+            <Building2 className="h-5 w-5 text-primary mt-0.5" />
+            <div>
+              <p className="font-medium mb-1">Bank Account Management</p>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>
+                  • You can link multiple bank accounts for different purposes
+                </li>
+                <li>• Verified accounts can be used for payouts and refunds</li>
+                <li>
+                  • Verification is done securely through Cashfree's payment
+                  gateway
+                </li>
+                <li>• Contact support if you need help with verification</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid gap-4">
         {loading ? (
           <Card className="shadow-medium border-2">
@@ -157,6 +180,7 @@ const BankStatus = () => {
             const statusConfig = getStatusConfig(status);
             const StatusIcon = statusConfig.icon;
             const isRejected = account.adminStatus === "rejected";
+            const isVerified = status === "verified";
 
             return (
               <Card
@@ -194,6 +218,15 @@ const BankStatus = () => {
                           className="border-destructive text-destructive"
                         >
                           Rejected by Admin
+                        </Badge>
+                      )}
+                      {isVerified && account.cashfreeBeneficiaryId && (
+                        <Badge
+                          variant="outline"
+                          className="border-success text-success"
+                        >
+                          Beneficiary ID:{" "}
+                          {account.cashfreeBeneficiaryId.substring(0, 8)}...
                         </Badge>
                       )}
                     </div>

@@ -75,10 +75,10 @@ const Transactions = () => {
   const getStatusConfig = (status) => {
     const configs = {
       paid: { variant: "success", icon: CheckCircle, text: "Success" },
-      created: { variant: "warning", icon: Clock, text: "Pending" },
+      pending: { variant: "warning", icon: Clock, text: "Pending" },
       failed: { variant: "destructive", icon: XCircle, text: "Failed" },
     };
-    return configs[status] || configs.created;
+    return configs[status] || configs.pending;
   };
 
   const filteredTransactions = transactions.filter((txn) => {
@@ -129,6 +129,7 @@ const Transactions = () => {
       });
 
       return [
+        // Explicitly use the backend-provided Transaction ID
         txn.orderId,
         formattedDate,
         paymentMethod,
@@ -245,7 +246,7 @@ const Transactions = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by transaction ID or payment method..."
+                placeholder="Search by Transaction ID or payment method..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9"
@@ -259,7 +260,7 @@ const Transactions = () => {
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="paid">Success</SelectItem>
-                <SelectItem value="created">Pending</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="failed">Failed</SelectItem>
               </SelectContent>
             </Select>
@@ -330,6 +331,7 @@ const Transactions = () => {
                           className="hover:bg-secondary/30 transition-colors"
                         >
                           <TableCell className="font-mono font-semibold text-primary">
+                            {/* Display the backend-provided Transaction ID */}
                             {txn.orderId}
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground whitespace-nowrap">

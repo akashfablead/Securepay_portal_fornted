@@ -21,6 +21,7 @@ import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
 import MasterRetailers from "./pages/MasterRetailers";
 import MasterPayout from "./pages/MasterPayout";
+import PayoutHistory from "./pages/PayoutHistory";
 
 const queryClient = new QueryClient();
 
@@ -161,6 +162,16 @@ const App = () => {
                 element={
                   isAuthenticated ? (
                     <MasterPayout />
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
+                path="/payout-history"
+                element={
+                  isAuthenticated ? (
+                    <PayoutHistory />
                   ) : (
                     <Navigate to="/login" replace />
                   )

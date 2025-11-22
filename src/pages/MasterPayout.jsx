@@ -33,6 +33,8 @@ import {
   createPayoutRequest,
   checkCashfreeTransferStatus,
 } from "../services/payoutService";
+import { mapCashfreeStatus } from "../services/payoutService";
+import { Link } from "react-router-dom";
 
 const MasterPayout = () => {
   const [balance, setBalance] = useState(0);
@@ -167,6 +169,23 @@ const MasterPayout = () => {
     }
   };
 
+  // Function to map Cashfree status to display status
+  const mapCashfreeStatusLocal = (cashfreeStatus) => {
+    switch (cashfreeStatus) {
+      case "SUCCESS":
+        return "success";
+      case "FAILED":
+      case "REVERSED":
+        return "failed";
+      case "PROCESSING":
+      case "RECEIVED":
+      case "PENDING":
+        return "processing";
+      default:
+        return "pending";
+    }
+  };
+
   // Function to check Cashfree transfer status
   const checkTransferStatus = async () => {
     try {
@@ -179,6 +198,7 @@ const MasterPayout = () => {
       // const payoutId = "some-payout-id"; // This would come from user's payout history
       // const result = await checkCashfreeTransferStatus(payoutId);
       // Handle the result as needed
+      // const displayStatus = mapCashfreeStatusLocal(result.payout.cashfreeStatus);
 
       await loadBalance();
       toast.success("Balance refreshed successfully!");
@@ -204,6 +224,14 @@ const MasterPayout = () => {
         <p className="text-muted-foreground text-lg">
           Transfer your wallet balance to your bank account
         </p>
+        <div className="mt-4">
+          <Link
+            to="/payout-history"
+            className="text-sm text-primary hover:underline"
+          >
+            View Payout History
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

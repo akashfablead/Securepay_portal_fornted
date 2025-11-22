@@ -1,14 +1,15 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Home,
+  FileCheck,
+  Wallet,
   History,
+  ArrowDownToLine,
+  Users,
   User,
   HelpCircle,
-  Wallet,
-  FileCheck,
   LogOut,
-  Users,
-  ArrowDownToLine,
+  List,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useMemo, useState } from "react";
@@ -29,9 +30,10 @@ const Layout = ({ children }) => {
   const navItems = [
     { icon: Home, label: "Dashboard", path: "/" },
     { icon: FileCheck, label: "KYC", path: "/kyc-verification" },
-    { icon: Wallet, label: "Bank", path: "/add-bank" },
+    { icon: Wallet, label: "Bank", path: "/bank-status" },
     { icon: History, label: "History", path: "/transactions" },
     { icon: ArrowDownToLine, label: "Payout", path: "/payout" },
+    { icon: List, label: "Payout History", path: "/payout-history" },
     // Only show Retailers and Payout menu for master distributors
     ...(isMasterDistributor
       ? [{ icon: Users, label: "Retailers", path: "/master/retailers" }]

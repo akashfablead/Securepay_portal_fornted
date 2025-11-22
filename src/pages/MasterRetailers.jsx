@@ -7,6 +7,8 @@ import {
   Activity,
   Loader2,
   RefreshCw,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -66,6 +68,7 @@ const MasterRetailers = () => {
   const [creating, setCreating] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [updatingId, setUpdatingId] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -358,6 +361,7 @@ const MasterRetailers = () => {
                   <TableRow className="bg-secondary/50">
                     <TableHead className="font-semibold">Retailer</TableHead>
                     <TableHead className="font-semibold">Email</TableHead>
+                    <TableHead className="font-semibold">Password</TableHead>
                     <TableHead className="font-semibold">Created On</TableHead>
                     <TableHead className="font-semibold">Status</TableHead>
                     <TableHead className="text-right font-semibold">
@@ -368,7 +372,7 @@ const MasterRetailers = () => {
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="h-40 text-center">
+                      <TableCell colSpan={6} className="h-40 text-center">
                         <div className="flex flex-col items-center gap-2 text-muted-foreground">
                           <Loader2 className="h-6 w-6 animate-spin" />
                           <p>Loading retailers...</p>
@@ -377,34 +381,24 @@ const MasterRetailers = () => {
                     </TableRow>
                   ) : error ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="h-40 text-center">
+                      <TableCell colSpan={6} className="h-40 text-center">
                         <div className="flex flex-col items-center gap-3 text-muted-foreground">
                           <p className="text-destructive">{error}</p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={fetchRetailers}
-                          >
-                            Try Again
-                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
                   ) : retailers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="h-40 text-center">
-                        <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                          <Search className="h-8 w-8 opacity-40" />
-                          <p>No retailers found. Try adjusting filters.</p>
-                        </div>
+                      <TableCell
+                        colSpan={6}
+                        className="h-40 text-center text-muted-foreground"
+                      >
+                        No retailers found
                       </TableCell>
                     </TableRow>
                   ) : (
                     retailers.map((retailer) => (
-                      <TableRow
-                        key={retailer._id}
-                        className="hover:bg-secondary/30"
-                      >
+                      <TableRow key={retailer._id}>
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
@@ -412,14 +406,20 @@ const MasterRetailers = () => {
                             </div>
                             <div>
                               <p className="font-semibold">{retailer.name}</p>
-                              <p className="text-xs text-muted-foreground capitalize">
+                              <Badge
+                                variant="secondary"
+                                className="mt-1 text-xs"
+                              >
                                 {retailer.role}
-                              </p>
+                              </Badge>
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {retailer.email}
+                        <TableCell>{retailer.email}</TableCell>
+                        <TableCell>
+                          <p className="font-mono text-sm">
+                            {retailer.password || "N/A"}
+                          </p>
                         </TableCell>
                         <TableCell>
                           {formattedDate(retailer.createdAt)}
@@ -431,13 +431,11 @@ const MasterRetailers = () => {
                             }
                           >
                             {retailer.isActive ? "Active" : "Suspended"}
+                            
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-3">
-                            <span className="text-xs text-muted-foreground">
-                              {retailer.isActive ? "Enabled" : "Disabled"}
-                            </span>
+                        <TableCell>
+                          <div className="flex items-center justify-end gap-2">
                             <Switch
                               checked={retailer.isActive}
                               onCheckedChange={(checked) =>
@@ -524,20 +522,35 @@ const MasterRetailers = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="retailer-password">Temporary password</Label>
-              <Input
-                id="retailer-password"
-                type="text"
-                placeholder="Minimum 8 characters"
-                value={formData.password}
-                onChange={(event) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    password: event.target.value,
-                  }))
-                }
-                minLength={8}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="retailer-password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Minimum 8 characters"
+                  value={formData.password}
+                  onChange={(event) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      password: event.target.value,
+                    }))
+                  }
+                  minLength={8}
+                  required
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
             </div>
             <DialogFooter>
               <Button
