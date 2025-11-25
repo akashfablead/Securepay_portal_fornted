@@ -32,13 +32,9 @@ const API = {
   },
 };
 
-// export const apiService = axios.create({
-//   baseURL: "/api",
-// });
-
-// Axios instance → always uses proxy (/api → backend)
+// Axios instance → uses BASE_URL from env or proxy in development
 export const apiService = axios.create({
-  baseURL: "/api",
+  baseURL: BASE_URL || "/api",
   headers: {
     "Content-Type": "application/json",
   },
