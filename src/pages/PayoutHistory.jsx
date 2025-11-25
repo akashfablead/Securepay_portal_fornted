@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { getUserPayouts } from "../services/payoutService";
+import { mapCashfreeStatus } from "../services/utils";
 
 const PayoutHistory = () => {
   const [payouts, setPayouts] = useState([]);
@@ -44,48 +45,61 @@ const PayoutHistory = () => {
       setPayouts(response.payouts || []);
       setTotalPages(response.totalPages || 1);
     } catch (err) {
-      console.error("Failed to load payouts:", err);
-      setError("Failed to load payout history");
-      toast.error("Failed to load payout history");
+      setError("Failed to load payout Reports");
     } finally {
       setLoading(false);
     }
   };
 
   const getStatusConfig = (status) => {
-    const configs = {
-      pending: {
-        variant: "warning",
+    return (
+      {
+        pending: {
+          variant: "default",
+          icon: Clock,
+          text: "Pending",
+        },
+        received: {
+          variant: "success",
+          icon: CheckCircle,
+          text: "Received",
+        },
+        sent_to_beneficiary: {
+          variant: "success",
+          icon: CheckCircle,
+          text: "Sent to Beneficiary",
+        },
+        approval_pending: {
+          variant: "warning",
+          icon: Clock,
+          text: "Approval Pending",
+        },
+        reversed: {
+          variant: "destructive",
+          icon: XCircle,
+          text: "Reversed",
+        },
+        rejected: {
+          variant: "destructive",
+          icon: XCircle,
+          text: "Rejected",
+        },
+        completed: {
+          variant: "success",
+          icon: CheckCircle,
+          text: "Completed",
+        },
+        failed: {
+          variant: "destructive",
+          icon: XCircle,
+          text: "Failed",
+        },
+      }[status] || {
+        variant: "default",
         icon: Clock,
         text: "Pending",
-      },
-      approved: {
-        variant: "default",
-        icon: Clock,
-        text: "Approved",
-      },
-      processing: {
-        variant: "default",
-        icon: Clock,
-        text: "Processing",
-      },
-      completed: {
-        variant: "success",
-        icon: CheckCircle,
-        text: "Completed",
-      },
-      failed: {
-        variant: "destructive",
-        icon: XCircle,
-        text: "Failed",
-      },
-      rejected: {
-        variant: "destructive",
-        icon: XCircle,
-        text: "Rejected",
-      },
-    };
-    return configs[status] || configs.pending;
+      }
+    );
   };
 
   const formatDate = (dateString) => {
@@ -109,9 +123,9 @@ const PayoutHistory = () => {
   return (
     <div className="space-y-6 pb-16 md:pb-6 w-full">
       <div>
-        <h1 className="text-4xl font-bold mb-2">Payout History</h1>
+        <h1 className="text-4xl font-bold mb-2">Payout Reports</h1>
         <p className="text-muted-foreground text-lg">
-          View your payout request history and status
+          View your payout request Reports and status
         </p>
       </div>
 
@@ -119,14 +133,14 @@ const PayoutHistory = () => {
         <CardHeader>
           <CardTitle className="text-xl">Payout Requests</CardTitle>
           <CardDescription>
-            Complete history of your payout requests
+            Complete Reports of your payout requests
           </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin mr-2" />
-              <span>Loading payout history...</span>
+              <span>Loading payout Reports...</span>
             </div>
           ) : error ? (
             <div className="flex items-center justify-center py-8 text-destructive">
@@ -160,9 +174,12 @@ const PayoutHistory = () => {
                   </TableHeader>
                   <TableBody>
                     {payouts.map((payout) => {
-                      const statusConfig = getStatusConfig(
-                        payout.displayStatus || payout.status
+                      // Use the mapped status instead of displayStatus
+                      const displayStatus = mapCashfreeStatus(
+                        payout.cashfreeStatus
                       );
+                      const statusConfig = getStatusConfig(displayStatus);
+                      console.log("Status Config:", statusConfig);
                       const StatusIcon = statusConfig.icon;
 
                       return (

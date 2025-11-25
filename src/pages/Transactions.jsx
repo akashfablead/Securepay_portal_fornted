@@ -65,8 +65,8 @@ const Transactions = () => {
       }
     } catch (err) {
       console.error("Error fetching transactions:", err);
-      setError("Failed to load transaction history");
-      toast.error("Failed to load transaction history");
+      setError("Failed to load transaction Reports");
+      toast.error("Failed to load transaction Reports");
     } finally {
       setLoading(false);
     }
@@ -172,7 +172,7 @@ const Transactions = () => {
   return (
     <div className="space-y-6 pb-16 md:pb-6 w-full">
       <div>
-        <h1 className="text-4xl font-bold mb-2">Transaction History</h1>
+        <h1 className="text-4xl font-bold mb-2">Transaction Reports</h1>
         <p className="text-muted-foreground text-lg">
           View and manage all your payment transactions
         </p>
@@ -217,7 +217,7 @@ const Transactions = () => {
             <div>
               <CardTitle className="text-xl">All Transactions</CardTitle>
               <CardDescription>
-                Complete history of your payments
+                Complete Reports of your payments
               </CardDescription>
             </div>
             <div className="flex gap-2">

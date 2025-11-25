@@ -66,7 +66,7 @@ const Support = () => {
       id: 5,
       question: "How do I track my transactions?",
       answer:
-        "You can view all your transactions in the Transaction History page, which shows detailed information including date, amount, method, and status.",
+        "You can view all your transactions in the Transaction Reports page, which shows detailed information including date, amount, method, and status.",
     },
   ];
 

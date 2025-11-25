@@ -10,6 +10,7 @@ import {
   HelpCircle,
   LogOut,
   List,
+  CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useMemo, useState } from "react";
@@ -31,9 +32,15 @@ const Layout = ({ children }) => {
     { icon: Home, label: "Dashboard", path: "/" },
     { icon: FileCheck, label: "KYC", path: "/kyc-verification" },
     { icon: Wallet, label: "Bank", path: "/bank-status" },
-    { icon: History, label: "History", path: "/transactions" },
+    { icon: CreditCard, label: "PG Method", path: "/payment" },
     { icon: ArrowDownToLine, label: "Payout", path: "/payout" },
-    { icon: List, label: "Payout History", path: "/payout-history" },
+    { icon: List, label: "Payout Reports", path: "/payout-history" },
+    { icon: History, label: "PG Reports", path: "/transactions" },
+    {
+      icon: FileCheck,
+      label: "Reports",
+      path: "/consolidated-reports",
+    },
     // Only show Retailers and Payout menu for master distributors
     ...(isMasterDistributor
       ? [{ icon: Users, label: "Retailers", path: "/master/retailers" }]

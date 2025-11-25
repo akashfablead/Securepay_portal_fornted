@@ -194,9 +194,7 @@ const BankStatus = () => {
                         <Building2 className="h-6 w-6 text-primary" />
                       </div>
                       <div>
-                        <CardTitle className="text-lg">
-                          {account.bankName || "Bank Account"}
-                        </CardTitle>
+                        <CardTitle className="text-lg">Bank Account</CardTitle>
                         <CardDescription>
                           {account.accountHolderName}
                         </CardDescription>

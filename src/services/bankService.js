@@ -3,13 +3,12 @@ import { toast } from "sonner";
 
 
 // Add a bank account
-export const addBankAccount = async ({ accountHolderName, accountNumber, ifsc, phone, bankName, accountType = "savings" }) => {
+export const addBankAccount = async ({ accountHolderName, accountNumber, ifsc, phone, accountType = "savings" }) => {
     const form = new FormData();
     form.append("accountHolderName", accountHolderName);
     form.append("accountNumber", accountNumber);
     form.append("ifsc", ifsc);
     if (phone) form.append("phone", phone);
-    if (bankName) form.append("bankName", bankName);
     if (accountType) form.append("accountType", accountType);
 
     const res = await apiService.post("bank", form, { headers: { "Content-Type": "multipart/form-data" }, showSuccess: true });
@@ -67,4 +66,3 @@ export const deleteBankAccount = async (accountId) => {
     const res = await apiService.delete(`bank/${accountId}`);
     return res.data;
 };
-

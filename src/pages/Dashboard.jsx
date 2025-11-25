@@ -203,7 +203,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <p className="font-semibold text-lg">Transactions</p>
-                <p className="text-sm text-muted-foreground">View history</p>
+                <p className="text-sm text-muted-foreground">View Reports</p>
               </div>
             </div>
           </CardContent>

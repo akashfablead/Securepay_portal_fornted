@@ -33,8 +33,7 @@ import {
   createPayoutRequest,
   checkCashfreeTransferStatus,
 } from "../services/payoutService";
-import { mapCashfreeStatus } from "../services/payoutService";
-import { Link } from "react-router-dom";
+ import { Link } from "react-router-dom";
 
 const MasterPayout = () => {
   const [balance, setBalance] = useState(0);
@@ -173,16 +172,26 @@ const MasterPayout = () => {
   const mapCashfreeStatusLocal = (cashfreeStatus) => {
     switch (cashfreeStatus) {
       case "SUCCESS":
-        return "success";
+      case "COMPLETED":
+        return "completed";
+      case "SENT_TO_BENEFICIARY":
+        return "sent_to_beneficiary";
       case "FAILED":
-      case "REVERSED":
         return "failed";
-      case "PROCESSING":
+      case "REVERSED":
+        return "reversed";
+      case "REJECTED":
+        return "rejected";
       case "RECEIVED":
+        return "received";
+      case "APPROVAL_PENDING":
+        return "approval_pending";
       case "PENDING":
+        return "pending";
+      case "PROCESSING":
         return "processing";
       default:
-        return "pending";
+        return "unknown";
     }
   };
 
@@ -219,18 +228,26 @@ const MasterPayout = () => {
 
   return (
     <div className="w-full pb-16 md:pb-6">
-      <div className="mb-6">
-        <h1 className="text-4xl font-bold mb-2">Payout</h1>
-        <p className="text-muted-foreground text-lg">
-          Transfer your wallet balance to your bank account
-        </p>
-        <div className="mt-4">
-          <Link
-            to="/payout-history"
-            className="text-sm text-primary hover:underline"
-          >
-            View Payout History
-          </Link>
+      <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+              Payout
+            </h1>
+            <p className="text-muted-foreground text-base md:text-lg max-w-2xl">
+              Transfer your wallet balance to your verified bank account
+              securely
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            <Link
+              to="/payout-history"
+              className="inline-flex items-center px-4 py-2 bg-white border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors duration-200 shadow-sm text-sm font-medium"
+            >
+              <Hash className="h-4 w-4 mr-2" />
+              View Payout Reports
+            </Link>
+          </div>
         </div>
       </div>
 

@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import MasterRetailers from "./pages/MasterRetailers";
 import MasterPayout from "./pages/MasterPayout";
 import PayoutHistory from "./pages/PayoutHistory";
+import ConsolidatedReports from "./pages/ConsolidatedReports";
 
 const queryClient = new QueryClient();
 
@@ -172,6 +173,16 @@ const App = () => {
                 element={
                   isAuthenticated ? (
                     <PayoutHistory />
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
+                path="/consolidated-reports"
+                element={
+                  isAuthenticated ? (
+                    <ConsolidatedReports />
                   ) : (
                     <Navigate to="/login" replace />
                   )
