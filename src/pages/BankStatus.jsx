@@ -218,15 +218,6 @@ const BankStatus = () => {
                           Rejected by Admin
                         </Badge>
                       )}
-                      {isVerified && account.cashfreeBeneficiaryId && (
-                        <Badge
-                          variant="outline"
-                          className="border-success text-success"
-                        >
-                          Beneficiary ID:{" "}
-                          {account.cashfreeBeneficiaryId.substring(0, 8)}...
-                        </Badge>
-                      )}
                     </div>
                   </div>
                 </CardHeader>

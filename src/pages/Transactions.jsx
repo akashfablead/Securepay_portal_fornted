@@ -167,7 +167,9 @@ const Transactions = () => {
   };
 
   const successCount = transactions.filter((t) => t.status === "paid").length;
-  const totalAmount = transactions.reduce((sum, t) => sum + t.amount, 0);
+  const totalAmount = transactions
+    .filter((t) => t.status === "paid")
+    .reduce((sum, t) => sum + t.amount, 0);
 
   return (
     <div className="space-y-6 pb-16 md:pb-6 w-full">

@@ -111,9 +111,7 @@ const AddBank = () => {
     // IFSC validation
     if (!bankDetails.ifsc.trim()) {
       newErrors.ifsc = "IFSC code is required";
-    } else if (!/^[A-Za-z]{4}\d{7}$/.test(bankDetails.ifsc.trim())) {
-      newErrors.ifsc = "IFSC code must be 11 characters (4 letters + 7 digits)";
-    }
+    } 
 
     // Phone validation
     if (!bankDetails.phone.trim()) {
