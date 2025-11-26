@@ -23,6 +23,10 @@ import MasterRetailers from "./pages/MasterRetailers";
 import MasterPayout from "./pages/MasterPayout";
 import PayoutHistory from "./pages/PayoutHistory";
 import ConsolidatedReports from "./pages/ConsolidatedReports";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsAndConditions from "./pages/TermsAndConditions";
+import RefundPolicy from "./pages/RefundPolicy";
+import TransactionDemo from "./pages/TransactionDemo";
 
 const queryClient = new QueryClient();
 
@@ -233,6 +237,25 @@ const App = () => {
                 }
               />
 
+              {/* Demo route for transaction details */}
+              <Route
+                path="/transaction-demo"
+                element={
+                  isAuthenticated ? (
+                    <TransactionDemo />
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+
+              {/* Public routes - accessible without authentication */}
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route
+                path="/terms-and-conditions"
+                element={<TermsAndConditions />}
+              />
+              <Route path="/refund-policy" element={<RefundPolicy />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>

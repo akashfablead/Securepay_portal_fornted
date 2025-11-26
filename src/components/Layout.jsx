@@ -19,12 +19,22 @@ import { getDashboard } from "../services/authService";
 const Layout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  // Wallet balance (simple JS state, no TypeScript generics in .jsx file)
+
   const [walletBalance, setWalletBalance] = useState(null);
-  const hideNavRoutes = ["/login", "/forgot-password", "/signup"];
+
+  // 🔥 Mobile Sidebar State
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const hideNavRoutes = [
+    "/login",
+    "/forgot-password",
+    "/signup",
+    "/privacy-policy",
+    "/terms-and-conditions",
+    "/refund-policy",
+  ];
   const showNav = !hideNavRoutes.includes(location.pathname);
 
-  // Get user role from localStorage
   const userRole = localStorage.getItem("role") || "user";
   const isMasterDistributor = userRole === "master";
 
@@ -41,12 +51,13 @@ const Layout = ({ children }) => {
       label: "Reports",
       path: "/consolidated-reports",
     },
-    // Only show Retailers and Payout menu for master distributors
     ...(isMasterDistributor
       ? [{ icon: Users, label: "Retailers", path: "/master/retailers" }]
       : []),
     { icon: User, label: "Profile", path: "/profile" },
     { icon: HelpCircle, label: "Support", path: "/support" },
+    // Demo page for transaction details
+    { icon: FileCheck, label: "Transaction Demo", path: "/transaction-demo" },
   ];
 
   const handleLogout = () => {
@@ -56,7 +67,6 @@ const Layout = ({ children }) => {
     navigate("/login", { replace: true });
   };
 
-  // Load wallet balance for header
   useEffect(() => {
     let active = true;
 
@@ -70,9 +80,7 @@ const Layout = ({ children }) => {
       } catch (_) {}
     };
 
-    if (showNav) {
-      loadBalance();
-    }
+    if (showNav) loadBalance();
 
     return () => {
       active = false;
@@ -95,9 +103,11 @@ const Layout = ({ children }) => {
         showNav ? "md:flex md:items-stretch" : ""
       }`}
     >
+      {/* ---------------- DESKTOP SIDEBAR ---------------- */}
       {showNav && (
         <aside className="hidden md:flex md:flex-col w-64 lg:w-72 border-r border-border bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60 shadow-soft md:sticky md:top-0 md:h-screen md:self-start">
-          <div className="flex items-center gap-2 px-6 pt-8">
+          {/* Logo */}
+          <div className="flex items-center gap-2 px-6 pt-4">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-primary shadow-medium">
               <Wallet className="h-6 w-6 text-primary-foreground" />
             </div>
@@ -106,7 +116,8 @@ const Layout = ({ children }) => {
             </span>
           </div>
 
-          <div className="mt-8 flex-1 space-y-1 px-4">
+          {/* MENU ITEMS → Scrollable + takes all remaining height */}
+          <div className="mt-8 flex-1 space-y-1 px-4 overflow-y-auto">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -119,16 +130,15 @@ const Layout = ({ children }) => {
                     isActive ? "shadow-soft" : ""
                   }`}
                 >
-                  <div className="relative">
-                    <Icon className="h-5 w-5" />
-                  </div>
+                  <Icon className="h-5 w-5" />
                   <span>{item.label}</span>
                 </Button>
               );
             })}
           </div>
 
-          <div className="px-4 py-6 border-t border-border">
+          {/* LOGOUT — ALWAYS AT BOTTOM (sticky) */}
+          <div className="px-4 py-4 border-t border-border">
             <Button
               onClick={handleLogout}
               variant="ghost"
@@ -140,54 +150,128 @@ const Layout = ({ children }) => {
           </div>
         </aside>
       )}
+
+      {/* ---------------- MOBILE HEADER ---------------- */}
       <div className="flex-1 flex flex-col min-h-screen">
         {showNav && (
-          <header className="md:hidden sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md supports-[backdrop-filter]:bg-card/60 shadow-soft">
-            <div className="flex h-16 items-center justify-between px-4">
-              <Link
-                to="/"
-                className="flex items-center gap-2 transition-transform hover:scale-105"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-primary shadow-medium">
-                  <Wallet className="h-6 w-6 text-primary-foreground" />
-                </div>
-                <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                  SecurePay
-                </span>
-              </Link>
+          <header className="md:hidden sticky top-0 z-50 bg-white border-b border-border shadow-sm">
+            <div className="flex h-16 items-center justify-between px-3">
+              {/* LEFT SIDE: MENU + LOGO */}
+              <div className="flex items-center gap-3">
+                {/* MENU ICON (LEFT) */}
+                <Button
+                  onClick={() => setIsSidebarOpen(true)}
+                  variant="ghost"
+                  size="icon"
+                  className="p-2 rounded-md active:scale-95"
+                >
+                  <List className="h-6 w-6 text-gray-700" />
+                </Button>
 
-              <Button
-                onClick={() => navigate("/profile")}
-                variant="ghost"
-                size="sm"
+                {/* SecurePay Logo */}
+                <div
+                  className="flex items-center gap-2 active:scale-95"
+                  onClick={() => navigate("/")}
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-primary shadow-md">
+                    <Wallet className="h-6 w-6 text-primary-foreground" />
+                  </div>
+                  <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                    SecurePay
+                  </span>
+                </div>
+              </div>
+
+              {/* RIGHT SIDE: COMPACT WALLET PILL */}
+              <div
+                className="flex items-center gap-2 rounded-full bg-white border border-gray-200 shadow 
+        px-3 py-1.5 active:scale-95 transition cursor-pointer"
+                onClick={() => navigate("/payout")}
               >
-                <User className="h-5 w-5" />
-              </Button>
+                <div
+                  className="flex h-7 w-7 items-center justify-center rounded-full 
+        bg-gradient-primary text-primary-foreground shadow-inner"
+                >
+                  <Wallet className="h-3.5 w-3.5" />
+                </div>
+
+                <div className="leading-tight">
+                  <span className="text-[9px] font-semibold text-gray-500 uppercase tracking-wider block">
+                    Wallet
+                  </span>
+                  <span className="text-[13px] font-bold text-gray-900 -mt-[2px] block">
+                    {formattedBalance}
+                  </span>
+                </div>
+              </div>
             </div>
           </header>
         )}
 
-        {/* Desktop Header – Wallet Balance */}
+        {/* ---------------- MOBILE SIDEBAR DRAWER ---------------- */}
         {showNav && (
-          <div
-            className="hidden md:flex items-center justify-end px-8 py-4 
-    border-b border-border bg-background/70 backdrop-blur-xl 
-    supports-[backdrop-filter]:bg-background/50"
-          >
+          <>
             <div
-              className="flex items-center gap-3 rounded-full bg-card/90 
-      px-6 py-2 shadow-md border border-border/60"
+              className={`fixed top-0 left-0 h-full w-64 bg-white shadow-xl z-50 transform transition-transform duration-300
+              ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
             >
-              {/* Icon Box */}
-              <div
-                className="flex h-9 w-9 items-center justify-center rounded-full 
-        bg-gradient-to-br from-primary/90 to-primary text-primary-foreground 
-        shadow-inner"
-              >
-                <Wallet className="h-4 w-4" />
+              <div className="p-4 flex items-center gap-2  ">
+                <Wallet className="h-6 w-6 text-primary" />
+                <span className="text-xl font-bold">SecurePay</span>
               </div>
 
-              {/* Wallet Text */}
+              <div className="mt-4 space-y-1 px-3">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Button
+                      key={item.path}
+                      onClick={() => {
+                        navigate(item.path);
+                        setIsSidebarOpen(false); // 🔥 AUTO CLOSE
+                      }}
+                      variant="ghost"
+                      className="w-full justify-start gap-3 py-4 text-base"
+                    >
+                      <Icon className="h-5 w-5" />
+                      <span>{item.label}</span>
+                    </Button>
+                  );
+                })}
+              </div>
+              {/* 🔥 Logout Button (BOTTOM FIXED) */}
+              <div className="px-4 py-4 border-t">
+                <Button
+                  onClick={() => {
+                    handleLogout();
+                    setIsSidebarOpen(false);
+                  }}
+                  variant="ghost"
+                  className="w-full justify-center gap-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span>Logout</span>
+                </Button>
+              </div>
+            </div>
+
+            {/* Overlay */}
+            {isSidebarOpen && (
+              <div
+                className="fixed inset-0 bg-black/40 z-40"
+                onClick={() => setIsSidebarOpen(false)}
+              />
+            )}
+          </>
+        )}
+
+        {/* ---------------- DESKTOP WALLET HEADER ---------------- */}
+        {showNav && (
+          <div className="hidden md:flex items-center justify-end px-8 py-4 border-b border-border bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/50">
+            <div className="flex items-center gap-3 rounded-full bg-card/90 px-6 py-2 shadow-md border border-border/60">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary/90 to-primary text-primary-foreground shadow-inner">
+                <Wallet className="h-4 w-4" />
+              </div>
               <div
                 className="flex flex-col leading-none cursor-pointer"
                 onClick={() => navigate("/payout")}
@@ -203,40 +287,11 @@ const Layout = ({ children }) => {
           </div>
         )}
 
+        {/* ---------------- MAIN CONTENT ---------------- */}
         <main className={showNav ? "flex-1 px-4 py-6 md:px-8" : ""}>
           {children}
         </main>
-
-        {showNav && (
-          <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/80 shadow-medium z-50">
-            <div className="flex items-center justify-around py-2 px-2">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.path;
-                return (
-                  <Button
-                    key={item.path}
-                    onClick={() => navigate(item.path)}
-                    variant="ghost"
-                    size="sm"
-                    className={`flex flex-col items-center gap-1 h-auto py-2 px-3 transition-all ${
-                      isActive
-                        ? "text-primary bg-primary/10"
-                        : "text-muted-foreground"
-                    }`}
-                  >
-                    <div className="relative">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <span className="text-xs font-medium">{item.label}</span>
-                  </Button>
-                );
-              })}
-            </div>
-          </nav>
-        )}
       </div>
-      ;
     </div>
   );
 };

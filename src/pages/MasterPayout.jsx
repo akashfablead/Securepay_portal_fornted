@@ -90,8 +90,6 @@ const MasterPayout = () => {
           return isVerified && isActive;
         });
 
-        console.log("Verified accounts:", verifiedAccounts);
-
         setBankAccounts(verifiedAccounts);
 
         // Set the first verified account as default selection if none selected
@@ -165,33 +163,6 @@ const MasterPayout = () => {
       toast.error(error?.response?.data?.message || "Failed to process payout");
     } finally {
       setProcessing(false);
-    }
-  };
-
-  // Function to map Cashfree status to display status
-  const mapCashfreeStatusLocal = (cashfreeStatus) => {
-    switch (cashfreeStatus) {
-      case "SUCCESS":
-      case "COMPLETED":
-        return "completed";
-      case "SENT_TO_BENEFICIARY":
-        return "sent_to_beneficiary";
-      case "FAILED":
-        return "failed";
-      case "REVERSED":
-        return "reversed";
-      case "REJECTED":
-        return "rejected";
-      case "RECEIVED":
-        return "received";
-      case "APPROVAL_PENDING":
-        return "approval_pending";
-      case "PENDING":
-        return "pending";
-      case "PROCESSING":
-        return "processing";
-      default:
-        return "unknown";
     }
   };
 
@@ -328,36 +299,37 @@ const MasterPayout = () => {
                     </div>
 
                     {selectedBankAccount && (
-                      <div className="bg-secondary/50 p-4 rounded-lg border">
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <p className="text-muted-foreground">
+                      <div className="bg-white p-4 rounded-xl border shadow-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                          {/* Account Holder */}
+                          <div className="space-y-1">
+                            <p className="text-xs font-medium text-muted-foreground tracking-wide">
                               Account Holder
                             </p>
-                            <p className="font-semibold">
-                              {selectedBankAccount.accountHolderName}
+                            <p className="font-semibold text-gray-900">
+                              {selectedBankAccount.accountHolderName || "—"}
                             </p>
                           </div>
-                          <div>
-                            <p className="text-muted-foreground">Bank Name</p>
-                            <p className="font-semibold">
-                              {selectedBankAccount.bankName || "N/A"}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">
+
+                          {/* Account Number */}
+                          <div className="space-y-1">
+                            <p className="text-xs font-medium text-muted-foreground tracking-wide">
                               Account Number
                             </p>
-                            <p className="font-mono font-semibold">
-                              XXXX XXXX{" "}
+                            <p className="font-semibold font-mono text-gray-900">
+                              •••• ••••{" "}
                               {selectedBankAccount.accountNumber?.slice(-4) ||
                                 "****"}
                             </p>
                           </div>
-                          <div>
-                            <p className="text-muted-foreground">IFSC Code</p>
-                            <p className="font-mono font-semibold">
-                              {selectedBankAccount.ifsc}
+
+                          {/* IFSC Code */}
+                          <div className="space-y-1">
+                            <p className="text-xs font-medium text-muted-foreground tracking-wide">
+                              IFSC Code
+                            </p>
+                            <p className="font-semibold font-mono text-gray-900">
+                              {selectedBankAccount.ifsc || "—"}
                             </p>
                           </div>
                         </div>

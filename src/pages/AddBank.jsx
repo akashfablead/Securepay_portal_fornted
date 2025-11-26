@@ -24,7 +24,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { addBankAccount, verifyBankAccount } from "@/services/bankService";
+import { addBankAccount } from "@/services/bankService";
 import { listBankAccounts } from "@/services/bankService";
 import { getProfile } from "@/services/authService";
 
@@ -111,7 +111,7 @@ const AddBank = () => {
     // IFSC validation
     if (!bankDetails.ifsc.trim()) {
       newErrors.ifsc = "IFSC code is required";
-    } 
+    }
 
     // Phone validation
     if (!bankDetails.phone.trim()) {
@@ -167,41 +167,7 @@ const AddBank = () => {
         return;
       }
 
-      // Trigger verification
-      const verifyRes = await verifyBankAccount(created._id);
-      console.log(verifyRes);
-
-      if (verifyRes?.success) {
-        const status = verifyRes?.verificationStatus || "pending";
-        if (status === "verified") {
-          toast.success("Bank account verified successfully!");
-        } else if (status === "pending") {
-          toast.info("Verification in progress. Please check status page.");
-        } else {
-          toast.warning("Verification status: " + status);
-        }
-      } else {
-        const errorMsg =
-          verifyRes?.verificationResult?.message ||
-          verifyRes?.message ||
-          "Verification failed";
-        const errorCode = verifyRes?.verificationResult?.code;
-
-        // Show more helpful messages based on error type
-        if (errorCode === "auth_error" || errorCode === "config_missing") {
-          toast.error(
-            "Verification service configuration error. Please contact support."
-          );
-        } else if (errorCode === "timeout" || errorCode === "network_error") {
-          toast.error(
-            "Network error. Please check your connection and try again."
-          );
-        } else if (errorCode === "rate_limited") {
-          toast.error("Too many requests. Please wait a moment and try again.");
-        } else {
-          toast.error(errorMsg);
-        }
-      }
+      toast.success("Bank account added successfully!");
 
       // Navigate to status page after add/verify so form is not shown
       navigate("/bank-status", { replace: true });

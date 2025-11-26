@@ -11,6 +11,7 @@ import {
   XCircle,
   Loader2,
   Eye,
+  Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,12 +47,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { format } from "date-fns";
 
 const ConsolidatedReports = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -62,13 +66,21 @@ const ConsolidatedReports = () => {
 
   useEffect(() => {
     fetchReports();
-  }, [currentPage]);
+  }, [currentPage, statusFilter, typeFilter, startDate, endDate]);
 
   const fetchReports = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await getConsolidatedReports();
+
+      const filters = {
+        status: statusFilter !== "all" ? statusFilter : undefined,
+        type: typeFilter !== "all" ? typeFilter : undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+      };
+
+      const response = await getConsolidatedReports(filters);
 
       setReports(response.reports || []);
       setTotalPages(1);
@@ -137,7 +149,20 @@ const ConsolidatedReports = () => {
     const matchesStatus =
       statusFilter === "all" || report.status === statusFilter;
     const matchesType = typeFilter === "all" || report.type === typeFilter;
-    return matchesSearch && matchesStatus && matchesType;
+
+    // Date filtering - improved logic
+    let matchesDate = true;
+    if (startDate || endDate) {
+      const reportDate = new Date(report.createdAt);
+      if (startDate && reportDate < new Date(startDate)) {
+        matchesDate = false;
+      }
+      if (endDate && reportDate > new Date(endDate + "T23:59:59")) {
+        matchesDate = false;
+      }
+    }
+
+    return matchesSearch && matchesStatus && matchesType && matchesDate;
   });
 
   const handleExport = () => {
@@ -212,9 +237,31 @@ const ConsolidatedReports = () => {
   ).length;
   const totalAmount = reports.reduce((sum, r) => sum + Math.abs(r.amount), 0);
 
+  // Calculate separate totals for payouts and payments
+  const totalPayoutAmount = reports
+    .filter((r) => r.type === "payout")
+    .reduce((sum, r) => sum + Math.abs(r.amount), 0);
+
+  const totalPaymentAmount = reports
+    .filter((r) => r.type === "payment")
+    .reduce((sum, r) => sum + Math.abs(r.amount), 0);
+
   const openReportDetails = (report) => {
     setSelectedReport(report);
     setIsDialogOpen(true);
+  };
+
+  const handleApplyFilters = () => {
+    // The filters are now automatically applied through the useEffect dependency array
+    // This function can be used for any additional logic if needed
+  };
+
+  const handleClearFilters = () => {
+    setStatusFilter("all");
+    setTypeFilter("all");
+    setStartDate("");
+    setEndDate("");
+    setSearchTerm("");
   };
 
   return (
@@ -226,7 +273,7 @@ const ConsolidatedReports = () => {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card className="shadow-soft hover:shadow-medium transition-all cursor-default border-l-4 border-l-primary">
           <CardHeader className="pb-3">
             <CardDescription className="text-xs font-medium uppercase tracking-wide">
@@ -240,20 +287,30 @@ const ConsolidatedReports = () => {
         <Card className="shadow-soft hover:shadow-medium transition-all cursor-default border-l-4 border-l-success">
           <CardHeader className="pb-3">
             <CardDescription className="text-xs font-medium uppercase tracking-wide">
-              Successful
+              Total Amount
             </CardDescription>
-            <CardTitle className="text-4xl font-bold text-success">
-              {successCount}
+            <CardTitle className="text-4xl font-bold text-foreground">
+              ₹{totalAmount.toLocaleString()}
             </CardTitle>
           </CardHeader>
         </Card>
-        <Card className="shadow-soft hover:shadow-medium transition-all cursor-default border-l-4 border-l-primary">
+        <Card className="shadow-soft hover:shadow-medium transition-all cursor-default border-l-4 border-l-blue-500">
           <CardHeader className="pb-3">
             <CardDescription className="text-xs font-medium uppercase tracking-wide">
-              Total Amount
+              Total Payout
             </CardDescription>
-            <CardTitle className="text-4xl font-bold">
-              ₹{totalAmount.toLocaleString()}
+            <CardTitle className="text-4xl font-bold text-blue-500">
+              ₹{totalPayoutAmount.toLocaleString()}
+            </CardTitle>
+          </CardHeader>
+        </Card>
+        <Card className="shadow-soft hover:shadow-medium transition-all cursor-default border-l-4 border-l-green-500">
+          <CardHeader className="pb-3">
+            <CardDescription className="text-xs font-medium uppercase tracking-wide">
+              Total Payment
+            </CardDescription>
+            <CardTitle className="text-4xl font-bold text-green-500">
+              ₹{totalPaymentAmount.toLocaleString()}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -282,8 +339,8 @@ const ConsolidatedReports = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by Transaction ID..."
@@ -293,7 +350,7 @@ const ConsolidatedReports = () => {
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectTrigger>
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
@@ -304,11 +361,11 @@ const ConsolidatedReports = () => {
                 <SelectItem value="failed">Failed</SelectItem>
                 <SelectItem value="processing">Processing</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="received">Received</SelectItem>
+                <SelectItem value="RECEIVED">Received</SelectItem>
               </SelectContent>
             </Select>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectTrigger>
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Filter by type" />
               </SelectTrigger>
@@ -318,6 +375,33 @@ const ConsolidatedReports = () => {
                 <SelectItem value="payout">Payouts</SelectItem>
               </SelectContent>
             </Select>
+            <div className="relative">
+              <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="date"
+                placeholder="Start date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <div className="relative">
+              <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="date"
+                placeholder="End date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={handleClearFilters}>
+              Clear Filters
+            </Button>
+            <Button onClick={handleApplyFilters}>Apply Filters</Button>
           </div>
 
           <div className="border rounded-lg overflow-hidden">
@@ -477,10 +561,10 @@ const ConsolidatedReports = () => {
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">
-                    Transaction ID
+                  <p className="text-sm text-muted-foreground">Order ID</p>
+                  <p className="font-medium">
+                    {selectedReport.orderId || selectedReport.id}
                   </p>
-                  <p className="font-medium">{selectedReport.orderId}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Type</p>
@@ -503,47 +587,117 @@ const ConsolidatedReports = () => {
                   <p className="text-sm text-muted-foreground">Amount</p>
                   <p
                     className={`font-medium ${
-                      selectedReport.type === "payout"
-                        ? "text-destructive"
-                        : "text-success"
+                      Number(selectedReport.amount) >= 0
+                        ? "text-success"
+                        : "text-destructive"
                     }`}
                   >
-                    {selectedReport.type === "payout" ? "-" : "+"}₹
-                    {Math.abs(selectedReport.amount).toLocaleString()}
+                    {Number(selectedReport.amount) >= 0 ? "+" : "-"}₹
+                    {Math.abs(Number(selectedReport.amount) || 0)}
                   </p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Date & Time</p>
-                  <p>
-                    {new Date(selectedReport.createdAt).toLocaleString(
-                      "en-IN",
-                      {
-                        year: "numeric",
-                        month: "2-digit",
-                        day: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      }
-                    )}
-                  </p>
+                  {selectedReport.type === "payout" && selectedReport.fee && (
+                    <p className="text-sm text-muted-foreground">
+                      Fee: ₹{selectedReport.fee}
+                    </p>
+                  )}
                 </div>
               </div>
-
-              {selectedReport.meta && (
-                <div className="border-t pt-4">
-                  <h3 className="font-medium mb-2">Additional Details</h3>
-                  <div className="grid grid-cols-1 gap-2">
-                    {Object.entries(selectedReport.meta).map(([key, value]) => (
-                      <div key={key} className="flex justify-between">
-                        <span className="text-muted-foreground capitalize">
-                          {key.replace(/([A-Z])/g, " $1").trim()}
-                        </span>
-                        <span>{String(value)}</span>
+              {/* Payment Method - Only show for payment transactions */}
+              {selectedReport.type === "payment" &&
+                selectedReport.meta?.payment && (
+                  <div className="border-t pt-4">
+                    <h3 className="font-medium mb-2">Payment Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-muted-foreground">Payment ID</p>
+                        <p className="font-mono">
+                          {selectedReport.meta.payment.cf_payment_id}
+                        </p>
                       </div>
-                    ))}
+                      <div>
+                        <p className="text-muted-foreground">Payment Details</p>
+                        <p className="font-mono">
+                          {
+                            selectedReport.meta.payment.payment_method?.card
+                              ?.card_number
+                          }
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-muted-foreground">Payment Method</p>
+                        <p className="capitalize">
+                          {selectedReport.meta.payment.payment_method?.card
+                            ? `${selectedReport.meta.payment.payment_method.card.card_type.replace(
+                                "_",
+                                " "
+                              )} - ${
+                                selectedReport.meta.payment.payment_method.card
+                                  .card_network
+                              }`
+                            : selectedReport.meta.payment.payment_group?.replace(
+                                "_",
+                                " "
+                              )}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Bank</p>
+                        <p>
+                          {selectedReport.meta.payment.payment_method?.card
+                            ?.card_bank_name || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Completion Time</p>
+                        <p>
+                          {selectedReport.meta.payment.payment_completion_time
+                            ? new Date(
+                                selectedReport.meta.payment.payment_completion_time
+                              ).toLocaleString()
+                            : "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              {selectedReport.user && (
+                <div className="border-t pt-4">
+                  <h3 className="font-medium mb-2">User Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Name</p>
+                      <p>{selectedReport.user.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Email</p>
+                      <p>{selectedReport.user.email}</p>
+                    </div>
                   </div>
                 </div>
               )}
+
+              {selectedReport.type === "payout" &&
+                selectedReport.bankDetails && (
+                  <div className="border-t pt-4">
+                    <h3 className="font-medium mb-2">Bank Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Account Holder</p>
+                        <p>{selectedReport.bankDetails.accountHolderName}</p>
+                      </div>
+
+                      <div>
+                        <p className="text-muted-foreground">Account Number</p>
+                        <p>{selectedReport.bankDetails.accountNumber}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">IFSC</p>
+                        <p>{selectedReport.bankDetails.ifsc}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
             </div>
           )}
         </DialogContent>

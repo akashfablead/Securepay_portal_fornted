@@ -20,7 +20,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   listBankAccounts,
-  verifyBankAccount,
+  deactivateBankAccount,
   deleteBankAccount,
 } from "@/services/bankService";
 import { toast } from "sonner";
@@ -176,7 +176,24 @@ const BankStatus = () => {
           </Card>
         ) : (
           accounts.map((account) => {
-            const status = account.verificationStatus || account.status;
+            // Determine status based on priority: verificationStatus > masterStatus > adminStatus
+            let status = account.verificationStatus || account.status;
+
+            // If verificationStatus is 'not_verified', check masterStatus and adminStatus
+            if (status === "not_verified") {
+              if (
+                account.masterStatus === "pending" ||
+                account.adminStatus === "pending"
+              ) {
+                status = "pending";
+              } else if (
+                account.masterStatus === "rejected" ||
+                account.adminStatus === "rejected"
+              ) {
+                status = "failed";
+              }
+            }
+
             const statusConfig = getStatusConfig(status);
             const StatusIcon = statusConfig.icon;
             const isRejected = account.adminStatus === "rejected";
@@ -262,176 +279,52 @@ const BankStatus = () => {
                       </div>
                     )}
 
-                    {status === "not_verified" && !isRejected && (
-                      <div
-                        className={`rounded-lg border p-3 ${statusConfig.bgClass}`}
-                      >
-                        <p className="text-sm mb-2">
-                          This bank account has not been verified yet. Click
-                          below to start verification.
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={verifyingId === account._id}
-                          onClick={async () => {
-                            try {
-                              setVerifyingId(account._id);
-                              const res = await verifyBankAccount(account._id);
-                              if (res?.success) {
-                                const status =
-                                  res.verificationStatus || "pending";
-                                if (status === "verified") {
-                                  toast.success(
-                                    "Bank account verified successfully!"
-                                  );
-                                } else if (status === "pending") {
-                                  toast.info(
-                                    "Verification in progress. Please wait."
-                                  );
-                                } else {
-                                  toast.warning(
-                                    "Verification status: " + status
-                                  );
-                                }
-                              } else {
-                                const errorMsg =
-                                  res?.verificationResult?.message ||
-                                  res?.message ||
-                                  "Verification failed";
-                                const errorCode = res?.verificationResult?.code;
-                                // Show more helpful messages based on error type
-                                if (
-                                  errorCode === "auth_error" ||
-                                  errorCode === "config_missing"
-                                ) {
-                                  toast.error(
-                                    "Verification service configuration error. Please contact support."
-                                  );
-                                } else if (
-                                  errorCode === "timeout" ||
-                                  errorCode === "network_error"
-                                ) {
-                                  toast.error(
-                                    "Network error. Please check your connection and try again."
-                                  );
-                                } else if (errorCode === "rate_limited") {
-                                  toast.error(
-                                    "Too many requests. Please wait a moment and try again."
-                                  );
-                                } else {
-                                  toast.error(errorMsg);
-                                }
-                              }
-                              await loadAccounts();
-                            } catch (err) {
-                              console.error(err);
-                              toast.error(
-                                err?.response?.data?.message ||
-                                  "Verification failed"
-                              );
-                            } finally {
-                              setVerifyingId(null);
-                            }
-                          }}
+                    {
+                      status === "not_verified" && !isRejected && (
+                        <div
+                          className={`rounded-lg border p-3 ${statusConfig.bgClass}`}
                         >
-                          {verifyingId === account._id
-                            ? "Verifying..."
-                            : "Verify Now"}
-                        </Button>
-                      </div>
-                    )}
+                          <p className="text-sm mb-2">
+                            This bank account has not been verified yet. Click
+                            below to start verification.
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={verifyingId === account._id}
+                            onClick={async () => {
+                              try {
+                                setVerifyingId(account._id);
+                                toast.success(
+                                  "Bank account verification requested!"
+                                );
+                                await loadAccounts();
+                              } catch (err) {
+                                console.error(err);
+                                toast.error("Verification request failed");
+                              } finally {
+                                setVerifyingId(null);
+                              }
+                            }}
+                          >
+                            {verifyingId === account._id
+                              ? "Verifying..."
+                              : "Verify Now"}
+                          </Button>
+                        </div>
+                      )
+                    }
 
-                    {status === "failed" && (
-                      <div
-                        className={`rounded-lg border p-3 ${statusConfig.bgClass}`}
-                      >
-                        <p className="text-sm mb-2">
-                          Verification failed. Please check your account details
-                          and try again.
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={verifyingId === account._id}
-                          onClick={async () => {
-                            try {
-                              setVerifyingId(account._id);
-                              const res = await verifyBankAccount(account._id);
-                              if (res?.success) {
-                                const status =
-                                  res.verificationStatus || "pending";
-                                if (status === "verified") {
-                                  toast.success(
-                                    "Bank account verified successfully!"
-                                  );
-                                } else if (status === "pending") {
-                                  toast.info(
-                                    "Verification in progress. Please wait."
-                                  );
-                                } else {
-                                  toast.warning(
-                                    "Verification status: " + status
-                                  );
-                                }
-                              } else {
-                                const errorMsg =
-                                  res?.verificationResult?.message ||
-                                  res?.message ||
-                                  "Verification failed";
-                                const errorCode = res?.verificationResult?.code;
-                                // Show more helpful messages based on error type
-                                if (
-                                  errorCode === "auth_error" ||
-                                  errorCode === "config_missing"
-                                ) {
-                                  toast.error(
-                                    "Verification service configuration error. Please contact support."
-                                  );
-                                } else if (
-                                  errorCode === "timeout" ||
-                                  errorCode === "network_error"
-                                ) {
-                                  toast.error(
-                                    "Network error. Please check your connection and try again."
-                                  );
-                                } else if (errorCode === "rate_limited") {
-                                  toast.error(
-                                    "Too many requests. Please wait a moment and try again."
-                                  );
-                                } else {
-                                  toast.error(errorMsg);
-                                }
-                              }
-                              await loadAccounts();
-                            } catch (err) {
-                              console.error(err);
-                              toast.error(
-                                err?.response?.data?.message || "Retry failed"
-                              );
-                            } finally {
-                              setVerifyingId(null);
-                            }
-                          }}
-                        >
-                          {verifyingId === account._id
-                            ? "Retrying..."
-                            : "Retry Verification"}
-                        </Button>
-                      </div>
-                    )}
+                    
 
                     {isRejected && (
                       <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 space-y-3">
                         <p className="text-sm text-destructive font-medium">
-                          This bank account was rejected by admin. Please add a
-                          new bank account to continue.
+                          Account Rejected by Admin.
                         </p>
-                        <Link to="/add-bank">
-                          <Button variant="destructive" size="sm">
-                            Add New Bank Account
-                          </Button>
-                        </Link>
+                        {/* <p className="text-sm">
+                          {account.rejectionReason || "No reason provided"}
+                         </p> */}
                       </div>
                     )}
 

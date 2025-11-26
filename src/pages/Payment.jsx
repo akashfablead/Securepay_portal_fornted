@@ -40,7 +40,7 @@ const Payment = () => {
 
   // Fee configuration (per transaction)
   const FEE_FIXED = 0; // INR
-  const FEE_PERCENT = 2.5; // % of base amount
+  const FEE_PERCENT = 0; // % of base amount
   const GST_PERCENT = 0; // % on fee only
   const MIN_AMOUNT = 100; // Minimum payable base amount
   const PRESET_AMOUNTS = [100, 200, 500, 1000, 2000];

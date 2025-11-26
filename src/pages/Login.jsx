@@ -139,8 +139,23 @@ const Login = () => {
 
             {/* Terms */}
             <p className="text-xs text-center text-muted-foreground mt-4">
-              By continuing, you agree to SecurePay’s Terms of Service and
-              Privacy Policy.
+              By continuing, you agree to SecurePay's{" "}
+              <button
+                type="button"
+                onClick={() => navigate("/terms-and-conditions")}
+                className="text-primary hover:underline transition-colors"
+              >
+                Terms of Service
+              </button>{" "}
+              and{" "}
+              <button
+                type="button"
+                onClick={() => navigate("/privacy-policy")}
+                className="text-primary hover:underline transition-colors"
+              >
+                Privacy Policy
+              </button>
+              .
             </p>
           </form>
         </Card>
