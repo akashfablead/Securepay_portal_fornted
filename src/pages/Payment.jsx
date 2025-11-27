@@ -360,26 +360,9 @@ const Payment = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column - Payment Form */}
         <div className="lg:col-span-2 space-y-6">
-          <Card className="shadow-soft bg-gradient-primary text-primary-foreground">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <Shield className="h-8 w-8" />
-                <div>
-                  <p className="font-semibold text-lg mb-1">
-                    Secure Payment Gateway
-                  </p>
-                  <p className="text-sm opacity-90">
-                    All transactions are processed through Cashfree's PCI DSS
-                    compliant payment gateway
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           {verificationLoading ? null : !canTransact ? (
             <Card className="border-warning/60 bg-warning/10 shadow-soft">
               <CardContent className="pt-6 space-y-4">
@@ -533,7 +516,7 @@ const Payment = () => {
         </div>
 
         {/* Right Column - Summary & Info */}
-        <div className="lg:col-span-1 space-y-6">
+        {/* <div className="lg:col-span-1 space-y-6">
           <Card className="shadow-medium sticky top-20">
             <CardHeader>
               <CardTitle className="text-xl">Payment Summary</CardTitle>
@@ -582,7 +565,7 @@ const Payment = () => {
               )}
             </CardContent>
           </Card>
-        </div>
+        </div> */}
       </div>
 
       {/* Confirmation Modal */}
