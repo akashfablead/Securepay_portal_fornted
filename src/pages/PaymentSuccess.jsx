@@ -34,22 +34,30 @@ const PaymentSuccess = () => {
         setLoading(true);
         const result = await verifyPayment({ orderId });
 
-        if (result?.status === "PAID") {
+        // Handle different response structures
+        const status = result?.status || result?.provider?.status || "PENDING";
+
+        if (status === "PAID" || status === "SUCCESS") {
           setPaymentStatus("success");
           setOrderDetails(result);
           toast.success("Payment verified successfully!");
-        } else if (result?.status === "FAILED") {
+        } else if (status === "FAILED") {
           setPaymentStatus("failed");
           setOrderDetails(result);
           toast.error("Payment failed");
-        } else {
+        } else if (status === "PENDING") {
           setPaymentStatus("pending");
           setOrderDetails(result);
           toast.info("Payment is still being processed");
+        } else {
+          setPaymentStatus("pending");
+          setOrderDetails(result);
+          toast.info("Payment status is being verified");
         }
       } catch (error) {
         console.error("Payment verification failed:", error);
         setPaymentStatus("error");
+        setOrderDetails({ error: error.message });
         toast.error("Failed to verify payment status");
       } finally {
         setLoading(false);
@@ -77,33 +85,48 @@ const PaymentSuccess = () => {
       // Create new PDF document
       const doc = new jsPDF();
 
-      // Get payment details
+      // Get payment details with better fallbacks
       const amount =
         orderDetails?.transaction?.amount ||
         orderDetails?.raw?.order?.order_amount ||
-        "N/A";
+        orderDetails?.provider?.orderAmount ||
+        0;
 
       // Format amount properly
-      const formattedAmount =
-        amount !== "N/A" ? Number(amount).toLocaleString("en-IN") : "N/A";
+      const formattedAmount = new Intl.NumberFormat("en-IN").format(amount);
       const paymentId =
-        orderDetails?.providerPaymentId ||
+        orderDetails?.provider?.providerPaymentId ||
         orderDetails?.transaction?.providerReferenceId ||
         orderDetails?.raw?.payment?.cf_payment_id ||
         "N/A";
       const paymentMethod =
-        orderDetails?.raw?.payment?.payment_method?.card?.card_type
-          ?.replace("_", " ")
-          .toUpperCase() ||
         orderDetails?.raw?.payment?.payment_group
           ?.replace("_", " ")
-          .toUpperCase() ||
-        "UPI";
+          .toUpperCase() === "UPI"
+          ? "UPI"
+          : orderDetails?.raw?.payment?.payment_method?.card?.card_type
+              ?.replace("_", " ")
+              .toUpperCase() ||
+            orderDetails?.transaction?.meta?.payment?.payment_method?.card?.card_type
+              ?.replace("_", " ")
+              .toUpperCase() ||
+            orderDetails?.raw?.payment?.payment_group
+              ?.replace("_", " ")
+              .toUpperCase() ||
+            orderDetails?.provider?.paymentGroup
+              ?.replace("_", " ")
+              .toUpperCase() ||
+            "UPI";
       const bankName =
         orderDetails?.raw?.payment?.payment_method?.card?.card_bank_name ||
+        orderDetails?.transaction?.meta?.payment?.payment_method?.card
+          ?.card_bank_name ||
+        orderDetails?.provider?.bankName ||
         "N/A";
       const paymentTime =
         orderDetails?.raw?.payment?.payment_completion_time ||
+        orderDetails?.provider?.paymentCompletionTime ||
+        orderDetails?.transaction?.createdAt ||
         new Date().toISOString();
 
       // Format date
@@ -225,6 +248,13 @@ const PaymentSuccess = () => {
         yPos += lineHeight;
       }
 
+      // Payment Time
+      doc.setTextColor(100, 100, 100);
+      doc.text("Payment Time", 25, yPos);
+      doc.setTextColor(0, 0, 0);
+      doc.text(formatDate(paymentTime), 100, yPos);
+      yPos += lineHeight;
+
       // Status
       doc.setTextColor(100, 100, 100);
       doc.text("Status", 25, yPos);
@@ -340,19 +370,24 @@ const PaymentSuccess = () => {
                     <span className="text-muted-foreground">Amount:</span>
                     <span className="font-semibold">
                       ₹
-                      {orderDetails?.transaction?.amount ||
-                        orderDetails?.raw?.order?.order_amount ||
-                        "N/A"}
+                      {new Intl.NumberFormat("en-IN").format(
+                        orderDetails?.transaction?.amount ||
+                          orderDetails?.raw?.order?.order_amount ||
+                          orderDetails?.provider?.orderAmount ||
+                          0
+                      )}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Status:</span>
-                    <span className="text-success font-semibold">PAID</span>
+                    <span className="text-success font-semibold">
+                      {orderDetails?.provider?.paymentStatus || "PAID"}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Payment ID:</span>
                     <span className="font-mono text-xs">
-                      {orderDetails?.providerPaymentId ||
+                      {orderDetails?.provider?.providerPaymentId ||
                         orderDetails?.transaction?.providerReferenceId ||
                         orderDetails?.raw?.payment?.cf_payment_id ||
                         "N/A"}
@@ -363,13 +398,51 @@ const PaymentSuccess = () => {
                       Payment Method:
                     </span>
                     <span className="font-semibold">
-                      {orderDetails?.raw?.payment?.payment_method?.card?.card_type
+                      {orderDetails?.raw?.payment?.payment_group
                         ?.replace("_", " ")
-                        .toUpperCase() ||
-                        orderDetails?.raw?.payment?.payment_group
-                          ?.replace("_", " ")
-                          .toUpperCase() ||
-                        "UPI"}
+                        .toUpperCase() === "UPI"
+                        ? "UPI"
+                        : orderDetails?.raw?.payment?.payment_method?.card?.card_type
+                            ?.replace("_", " ")
+                            .toUpperCase() ||
+                          orderDetails?.raw?.payment?.payment_group
+                            ?.replace("_", " ")
+                            .toUpperCase() ||
+                          orderDetails?.transaction?.meta?.payment?.payment_method?.card?.card_type
+                            ?.replace("_", " ")
+                            .toUpperCase() ||
+                          orderDetails?.provider?.paymentGroup
+                            ?.replace("_", " ")
+                            .toUpperCase() ||
+                          "UPI"}
+                    </span>
+                  </div>
+                  {(orderDetails?.raw?.payment?.payment_method?.card
+                    ?.card_bank_name ||
+                    orderDetails?.transaction?.meta?.payment?.payment_method
+                      ?.card?.card_bank_name ||
+                    orderDetails?.provider?.bankName) && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Bank:</span>
+                      <span className="font-semibold">
+                        {orderDetails?.raw?.payment?.payment_method?.card
+                          ?.card_bank_name ||
+                          orderDetails?.transaction?.meta?.payment
+                            ?.payment_method?.card?.card_bank_name ||
+                          orderDetails?.provider?.bankName ||
+                          "N/A"}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Payment Time:</span>
+                    <span className="font-semibold">
+                      {new Date(
+                        orderDetails?.raw?.payment?.payment_completion_time ||
+                          orderDetails?.provider?.paymentCompletionTime ||
+                          orderDetails?.transaction?.createdAt ||
+                          new Date()
+                      ).toLocaleString("en-IN")}
                     </span>
                   </div>
                 </div>
@@ -424,17 +497,28 @@ const PaymentSuccess = () => {
                     <span className="text-muted-foreground">Amount:</span>
                     <span className="font-semibold">
                       ₹
-                      {orderDetails?.transaction?.amount ||
-                        orderDetails?.raw?.order?.order_amount ||
-                        "N/A"}
+                      {new Intl.NumberFormat("en-IN").format(
+                        orderDetails?.transaction?.amount ||
+                          orderDetails?.raw?.order?.order_amount ||
+                          orderDetails?.provider?.orderAmount ||
+                          0
+                      )}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Status:</span>
                     <span className="text-destructive font-semibold">
-                      FAILED
+                      {orderDetails?.provider?.paymentStatus || "FAILED"}
                     </span>
                   </div>
+                  {orderDetails?.provider?.providerPaymentId && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Payment ID:</span>
+                      <span className="font-mono text-xs">
+                        {orderDetails?.provider?.providerPaymentId || "N/A"}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -487,15 +571,28 @@ const PaymentSuccess = () => {
                     <span className="text-muted-foreground">Amount:</span>
                     <span className="font-semibold">
                       ₹
-                      {orderDetails?.transaction?.amount ||
-                        orderDetails?.raw?.order?.order_amount ||
-                        "N/A"}
+                      {new Intl.NumberFormat("en-IN").format(
+                        orderDetails?.transaction?.amount ||
+                          orderDetails?.raw?.order?.order_amount ||
+                          orderDetails?.provider?.orderAmount ||
+                          0
+                      )}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Status:</span>
-                    <span className="text-warning font-semibold">PENDING</span>
+                    <span className="text-warning font-semibold">
+                      {orderDetails?.provider?.paymentStatus || "PENDING"}
+                    </span>
                   </div>
+                  {orderDetails?.provider?.providerPaymentId && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Payment ID:</span>
+                      <span className="font-mono text-xs">
+                        {orderDetails?.provider?.providerPaymentId || "N/A"}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -545,6 +642,45 @@ const PaymentSuccess = () => {
               <div className="bg-destructive/10 p-4 rounded-lg">
                 <h3 className="font-semibold mb-2">Order ID</h3>
                 <p className="font-mono text-sm">{orderId}</p>
+                {orderDetails && (
+                  <div className="mt-4 pt-4 border-t border-destructive/20">
+                    <h4 className="font-semibold mb-2">
+                      Additional Information
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Amount:</span>
+                        <span className="font-semibold">
+                          ₹
+                          {new Intl.NumberFormat("en-IN").format(
+                            orderDetails?.transaction?.amount ||
+                              orderDetails?.raw?.order?.order_amount ||
+                              orderDetails?.provider?.orderAmount ||
+                              0
+                          )}
+                        </span>
+                      </div>
+                      {orderDetails?.provider?.providerPaymentId && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Payment ID:
+                          </span>
+                          <span className="font-mono text-xs">
+                            {orderDetails?.provider?.providerPaymentId}
+                          </span>
+                        </div>
+                      )}
+                      {orderDetails?.provider?.paymentStatus && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Status:</span>
+                          <span className="font-semibold">
+                            {orderDetails?.provider?.paymentStatus}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <p className="text-sm text-muted-foreground text-center">

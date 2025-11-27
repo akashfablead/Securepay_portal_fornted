@@ -11,6 +11,8 @@ import {
   LogOut,
   List,
   CreditCard,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useMemo, useState } from "react";
@@ -24,6 +26,10 @@ const Layout = ({ children }) => {
 
   // 🔥 Mobile Sidebar State
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // State for money transfer submenu
+  const [moneyTransferOpen, setMoneyTransferOpen] = useState(false);
+  // State for utility payment submenu
+  const [utilityPaymentOpen, setUtilityPaymentOpen] = useState(false);
 
   const hideNavRoutes = [
     "/login",
@@ -38,14 +44,22 @@ const Layout = ({ children }) => {
   const userRole = localStorage.getItem("role") || "user";
   const isMasterDistributor = userRole === "master";
 
+  // Toggle money transfer submenu
+  const toggleMoneyTransfer = () => {
+    setMoneyTransferOpen(!moneyTransferOpen);
+  };
+
+  // Toggle utility payment submenu
+  const toggleUtilityPayment = () => {
+    setUtilityPaymentOpen(!utilityPaymentOpen);
+  };
+
   const navItems = [
     { icon: Home, label: "Dashboard", path: "/" },
     { icon: FileCheck, label: "KYC", path: "/kyc-verification" },
     { icon: Wallet, label: "Bank", path: "/bank-status" },
-    { icon: CreditCard, label: "PG Method", path: "/payment" },
-    { icon: ArrowDownToLine, label: "Payout", path: "/payout" },
-    { icon: List, label: "Payout Reports", path: "/payout-history" },
-    { icon: History, label: "PG Reports", path: "/transactions" },
+    // Money Transfer section will be inserted here
+    // Utility Payment section will be inserted here
     {
       icon: FileCheck,
       label: "Reports",
@@ -57,7 +71,6 @@ const Layout = ({ children }) => {
     { icon: User, label: "Profile", path: "/profile" },
     { icon: HelpCircle, label: "Support", path: "/support" },
     // Demo page for transaction details
-    { icon: FileCheck, label: "Transaction Demo", path: "/transaction-demo" },
   ];
 
   const handleLogout = () => {
@@ -118,7 +131,173 @@ const Layout = ({ children }) => {
 
           {/* MENU ITEMS → Scrollable + takes all remaining height */}
           <div className="mt-8 flex-1 space-y-1 px-4 overflow-y-auto">
-            {navItems.map((item) => {
+            {navItems.map((item, index) => {
+              // Insert Money Transfer and Utility Payment sections after Bank (index 2)
+              if (index === 2) {
+                return (
+                  <div key="sections-after-bank">
+                    {/* Render the Bank item first */}
+                    <Button
+                      key={item.path}
+                      onClick={() => navigate(item.path)}
+                      variant={
+                        location.pathname === item.path ? "secondary" : "ghost"
+                      }
+                      className={`w-full justify-start gap-3 py-5 text-base transition-all ${
+                        location.pathname === item.path ? "shadow-soft" : ""
+                      }`}
+                    >
+                      <Wallet className="h-5 w-5" />
+                      <span>{item.label}</span>
+                    </Button>
+
+                    {/* Money Transfer Section */}
+                    <div className="mt-2">
+                      <Button
+                        variant="ghost"
+                        className={`w-full justify-between gap-3 py-5 text-base transition-all ${
+                          location.pathname.includes("/bank-verification-status") ||
+                          location.pathname.includes("/payout-history")
+                            ? "bg-secondary text-secondary-foreground shadow-soft"
+                            : "hover:bg-accent hover:text-accent-foreground"
+                        }`}
+                        onClick={toggleMoneyTransfer}
+                      >
+                        <div className="flex items-center gap-3">
+                          <ArrowDownToLine className="h-5 w-5" />
+                          <span>Money Transfer</span>
+                        </div>
+                        {moneyTransferOpen ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                      </Button>
+
+                      {/* Submenu for Money Transfer */}
+                      {moneyTransferOpen && (
+                        <div className="ml-8 mt-1 space-y-1">
+                          <Button
+                            onClick={() => navigate("/bank-verification-status")}
+                            variant={
+                              location.pathname === "/bank-verification-status"
+                                ? "secondary"
+                                : "ghost"
+                            }
+                            className={`w-full justify-start gap-3 py-4 text-base ${
+                              location.pathname === "/bank-verification-status"
+                                ? "shadow-soft"
+                                : ""
+                            }`}
+                          >
+                            <span>Payout</span>
+                          </Button>
+                          <Button
+                            onClick={() => navigate("/payout-history")}
+                            variant={
+                              location.pathname === "/payout-history"
+                                ? "secondary"
+                                : "ghost"
+                            }
+                            className={`w-full justify-start gap-3 py-4 text-base ${
+                              location.pathname === "/payout-history"
+                                ? "shadow-soft"
+                                : ""
+                            }`}
+                          >
+                            <span>Payout Reports</span>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Utility Payment Section */}
+                    <div className="mt-2">
+                      <Button
+                        variant="ghost"
+                        className={`w-full justify-between gap-3 py-5 text-base transition-all ${
+                          location.pathname.includes("/payment") ||
+                          location.pathname.includes("/transactions")
+                            ? "bg-secondary text-secondary-foreground shadow-soft"
+                            : "hover:bg-accent hover:text-accent-foreground"
+                        }`}
+                        onClick={toggleUtilityPayment}
+                      >
+                        <div className="flex items-center gap-3">
+                          <CreditCard className="h-5 w-5" />
+                          <span>Utility Payment</span>
+                        </div>
+                        {utilityPaymentOpen ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                      </Button>
+
+                      {/* Submenu for Utility Payment */}
+                      {utilityPaymentOpen && (
+                        <div className="ml-8 mt-1 space-y-1">
+                          <Button
+                            onClick={() => navigate("/payment")}
+                            variant={
+                              location.pathname === "/payment"
+                                ? "secondary"
+                                : "ghost"
+                            }
+                            className={`w-full justify-start gap-3 py-4 text-base ${
+                              location.pathname === "/payment"
+                                ? "shadow-soft"
+                                : ""
+                            }`}
+                          >
+                            <span>PG Method</span>
+                          </Button>
+                          <Button
+                            onClick={() => navigate("/transactions")}
+                            variant={
+                              location.pathname === "/transactions"
+                                ? "secondary"
+                                : "ghost"
+                            }
+                            className={`w-full justify-start gap-3 py-4 text-base ${
+                              location.pathname === "/transactions"
+                                ? "shadow-soft"
+                                : ""
+                            }`}
+                          >
+                            <span>PG Reports</span>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+
+              // Render KYC item (index 1) normally
+              if (index === 1) {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path;
+                return (
+                  <Button
+                    key={item.path}
+                    onClick={() => navigate(item.path)}
+                    variant={isActive ? "secondary" : "ghost"}
+                    className={`w-full justify-start gap-3 py-5 text-base transition-all ${
+                      isActive ? "shadow-soft" : ""
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span>{item.label}</span>
+                  </Button>
+                );
+              }
+
+              // Skip rendering the Bank item again and the next two items since we already rendered them
+              if (index === 3 || index === 4) {
+                return null;
+              }
+
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
               return (
@@ -186,7 +365,7 @@ const Layout = ({ children }) => {
               <div
                 className="flex items-center gap-2 rounded-full bg-white border border-gray-200 shadow 
         px-3 py-1.5 active:scale-95 transition cursor-pointer"
-                onClick={() => navigate("/payout")}
+                onClick={() => navigate("/bank-verification-status")}
               >
                 <div
                   className="flex h-7 w-7 items-center justify-center rounded-full 
@@ -221,7 +400,148 @@ const Layout = ({ children }) => {
               </div>
 
               <div className="mt-4 space-y-1 px-3">
-                {navItems.map((item) => {
+                {navItems.map((item, index) => {
+                  // Insert Money Transfer and Utility Payment sections after Bank (index 2)
+                  if (index === 2) {
+                    return (
+                      <div key="mobile-sections-after-bank">
+                        {/* Render the Bank item first */}
+                        <Button
+                          key={item.path}
+                          onClick={() => {
+                            navigate(item.path);
+                            setIsSidebarOpen(false);
+                          }}
+                          variant="ghost"
+                          className="w-full justify-start gap-3 py-4 text-base"
+                        >
+                          <Wallet className="h-5 w-5" />
+                          <span>{item.label}</span>
+                        </Button>
+
+                        {/* Money Transfer Section for Mobile */}
+                        <div className="mt-2">
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-between gap-3 py-4 text-base"
+                            onClick={() => {
+                              toggleMoneyTransfer();
+                              // Don't close sidebar when toggling menu
+                            }}
+                          >
+                            <div className="flex items-center gap-3">
+                              <ArrowDownToLine className="h-5 w-5" />
+                              <span>Money Transfer</span>
+                            </div>
+                            {moneyTransferOpen ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
+                          </Button>
+
+                          {/* Submenu for Money Transfer */}
+                          {moneyTransferOpen && (
+                            <div className="ml-8 mt-1 space-y-1">
+                              <Button
+                                onClick={() => {
+                                  navigate("/bank-verification-status");
+                                  setIsSidebarOpen(false);
+                                }}
+                                variant="ghost"
+                                className="w-full justify-start gap-3 py-4 text-base"
+                              >
+                                <span>Payout</span>
+                              </Button>
+                              <Button
+                                onClick={() => {
+                                  navigate("/payout-history");
+                                  setIsSidebarOpen(false);
+                                }}
+                                variant="ghost"
+                                className="w-full justify-start gap-3 py-4 text-base"
+                              >
+                                <span>Payout Reports</span>
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Utility Payment Section for Mobile */}
+                        <div className="mt-2">
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-between gap-3 py-4 text-base"
+                            onClick={() => {
+                              toggleUtilityPayment();
+                              // Don't close sidebar when toggling menu
+                            }}
+                          >
+                            <div className="flex items-center gap-3">
+                              <CreditCard className="h-5 w-5" />
+                              <span>Utility Payment</span>
+                            </div>
+                            {utilityPaymentOpen ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
+                          </Button>
+
+                          {/* Submenu for Utility Payment */}
+                          {utilityPaymentOpen && (
+                            <div className="ml-8 mt-1 space-y-1">
+                              <Button
+                                onClick={() => {
+                                  navigate("/payment");
+                                  setIsSidebarOpen(false);
+                                }}
+                                variant="ghost"
+                                className="w-full justify-start gap-3 py-4 text-base"
+                              >
+                                <span>PG Method</span>
+                              </Button>
+                              <Button
+                                onClick={() => {
+                                  navigate("/transactions");
+                                  setIsSidebarOpen(false);
+                                }}
+                                variant="ghost"
+                                className="w-full justify-start gap-3 py-4 text-base"
+                              >
+                                <span>PG Reports</span>
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // Render KYC item (index 1) normally
+                  if (index === 1) {
+                    const Icon = item.icon;
+                    return (
+                      <Button
+                        key={item.path}
+                        onClick={() => {
+                          navigate(item.path);
+                          setIsSidebarOpen(false);
+                        }}
+                        variant="ghost"
+                        className="w-full justify-start gap-3 py-4 text-base"
+                      >
+                        <Icon className="h-5 w-5" />
+                        <span>{item.label}</span>
+                      </Button>
+                    );
+                  }
+
+                  // Skip rendering the Bank item again and the next two items since we already rendered them
+                  if (index === 3 || index === 4) {
+                    return null;
+                  }
+
                   const Icon = item.icon;
                   return (
                     <Button
@@ -274,7 +594,7 @@ const Layout = ({ children }) => {
               </div>
               <div
                 className="flex flex-col leading-none cursor-pointer"
-                onClick={() => navigate("/payout")}
+                onClick={() => navigate("/bank-verification-status")}
               >
                 <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
                   Wallet Balance

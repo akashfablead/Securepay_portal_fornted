@@ -31,7 +31,8 @@ export const useVerificationGate = () => {
       setState({
         loading: false,
         error: null,
-        canTransact: kycStatus === "approved" && bankStatus === "verified",
+        // KYC is now optional - only bank verification is required for transactions
+        canTransact: bankStatus === "verified",
         kycStatus,
         bankStatus,
         bank: data?.bank || null,
@@ -40,7 +41,9 @@ export const useVerificationGate = () => {
     } catch (err) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message || (err as Error)?.message || "Unable to verify account status";
+          ?.message ||
+        (err as Error)?.message ||
+        "Unable to verify account status";
       setState((prev) => ({
         ...prev,
         loading: false,
@@ -56,4 +59,3 @@ export const useVerificationGate = () => {
 
   return { ...state, refresh };
 };
-

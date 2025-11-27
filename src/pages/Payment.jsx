@@ -43,7 +43,7 @@ const Payment = () => {
   const FEE_PERCENT = 0; // % of base amount
   const GST_PERCENT = 0; // % on fee only
   const MIN_AMOUNT = 100; // Minimum payable base amount
-  const PRESET_AMOUNTS = [100, 200, 500, 1000, 2000];
+  const PRESET_AMOUNTS = [50000, 100000, 150000, 500000, 100000, 200000];
 
   const baseAmount = Number(amount) || 0;
   const percentageFee = +(baseAmount * (FEE_PERCENT / 100)).toFixed(2);
@@ -98,7 +98,7 @@ const Payment = () => {
     e.preventDefault();
 
     if (!canTransact) {
-      toast.error("Complete KYC and bank verification before making payments.");
+      toast.error("Complete bank verification before making payments.");
       return;
     }
 
@@ -390,14 +390,13 @@ const Payment = () => {
                   <div>
                     <p className="font-semibold text-lg">Payments Locked</p>
                     <p className="text-sm">
-                      KYC status: {kycStatus || "pending"} · Bank status:{" "}
-                      {bankStatus || "pending"}
+                      Bank status: {bankStatus || "pending"}
                     </p>
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Once your KYC is approved and bank account verified, payment
-                  gateway access will unlock automatically.
+                  Once your bank account is verified, payment gateway access
+                  will unlock automatically. KYC is now optional.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Button

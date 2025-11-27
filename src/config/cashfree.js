@@ -33,12 +33,6 @@ export const getCashfreeMode = () => {
 
 // Helper function to validate Cashfree configuration
 export const validateCashfreeConfig = () => {
-    console.log('Cashfree Config Check:', {
-        environment: CASHFREE_CONFIG.environment,
-        appId: CASHFREE_CONFIG.appId ? 'Set' : 'Missing',
-        secretKey: CASHFREE_CONFIG.secretKey ? 'Set' : 'Missing',
-        sdkUrl: CASHFREE_CONFIG.sdkUrl
-    });
 
     if (!CASHFREE_CONFIG.appId) {
         console.warn('Cashfree App ID not configured. Please set VITE_CASHFREE_APP_ID in your environment variables.');

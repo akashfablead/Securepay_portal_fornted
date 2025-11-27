@@ -26,7 +26,7 @@ import ConsolidatedReports from "./pages/ConsolidatedReports";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import RefundPolicy from "./pages/RefundPolicy";
-import TransactionDemo from "./pages/TransactionDemo";
+import BankVerificationStatus from "./pages/BankVerificationStatus";
 
 const queryClient = new QueryClient();
 
@@ -133,6 +133,16 @@ const App = () => {
                 }
               />
               <Route
+                path="/bank-verification-status"
+                element={
+                  isAuthenticated ? (
+                    <BankVerificationStatus />
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
                 path="/transactions"
                 element={
                   isAuthenticated ? (
@@ -231,18 +241,6 @@ const App = () => {
                     ) : (
                       <Navigate to="/" replace />
                     )
-                  ) : (
-                    <Navigate to="/login" replace />
-                  )
-                }
-              />
-
-              {/* Demo route for transaction details */}
-              <Route
-                path="/transaction-demo"
-                element={
-                  isAuthenticated ? (
-                    <TransactionDemo />
                   ) : (
                     <Navigate to="/login" replace />
                   )

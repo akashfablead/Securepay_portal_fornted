@@ -132,30 +132,26 @@ const BankStatus = () => {
           Manage and view your linked bank accounts
         </p>
       </div>
-
-      {/* Info Card */}
-      <Card className="bg-secondary/50">
-        <CardContent className="pt-4">
-          <div className="flex items-start gap-3">
-            <Building2 className="h-5 w-5 text-primary mt-0.5" />
-            <div>
-              <p className="font-medium mb-1">Bank Account Management</p>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>
-                  • You can link multiple bank accounts for different purposes
-                </li>
-                <li>• Verified accounts can be used for payouts and refunds</li>
-                <li>
-                  • Verification is done securely through Cashfree's payment
-                  gateway
-                </li>
-                <li>• Contact support if you need help with verification</li>
-              </ul>
+      {showAddCta && (
+        <Card className="bg-secondary/50">
+          <CardContent className="pt-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="font-semibold mb-1">Add Bank Account</h3>
+                <p className="text-sm text-muted-foreground">
+                  Add a new bank account for transactions
+                </p>
+              </div>
+              <Link to="/add-bank">
+                <Button className="gap-2">
+                  Add Bank Account
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
+          </CardContent>
+        </Card>
+      )}
       <div className="grid gap-4">
         {loading ? (
           <Card className="shadow-medium border-2">
@@ -239,8 +235,17 @@ const BankStatus = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-4">
+                    {/* Bank Details Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          Account Holder Name
+                        </p>
+                        <p className="font-medium">
+                          {account.accountHolderName}
+                        </p>
+                      </div>
                       <div>
                         <p className="text-sm text-muted-foreground mb-1">
                           Account Number
@@ -255,16 +260,54 @@ const BankStatus = () => {
                         </p>
                         <p className="font-mono font-medium">{account.ifsc}</p>
                       </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          Phone Number
+                        </p>
+                        <p className="font-medium">
+                          {account.phone || "Not provided"}
+                        </p>
+                      </div>
                     </div>
 
+                    {/* Account Type and Created Date */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          Account Type
+                        </p>
+                        <p className="font-medium capitalize">
+                          {account.accountType || "savings"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          Added On
+                        </p>
+                        <p className="font-medium">
+                          {account.createdAt
+                            ? new Date(account.createdAt).toLocaleDateString()
+                            : "N/A"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Verification Status Details */}
                     {account.verifiedAt && (
                       <div
                         className={`rounded-lg border p-3 ${statusConfig.bgClass}`}
                       >
-                        <p className="text-sm">
-                          <span className="font-medium">Verified on:</span>{" "}
-                          {new Date(account.verifiedAt).toLocaleDateString()}
-                        </p>
+                        <div className="flex justify-between items-center">
+                          <p className="text-sm">
+                            <span className="font-medium">Verified on:</span>{" "}
+                            {new Date(account.verifiedAt).toLocaleDateString()}
+                          </p>
+                          {account.verifiedBy && (
+                            <Badge variant="secondary" className="text-xs">
+                              Verified by {account.verifiedBy}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     )}
 
@@ -273,58 +316,77 @@ const BankStatus = () => {
                         className={`rounded-lg border p-3 ${statusConfig.bgClass}`}
                       >
                         <p className="text-sm">
+                          <span className="font-medium">
+                            Verification Status:
+                          </span>{" "}
                           Verification in progress via Cashfree. This usually
                           takes 2-5 minutes.
                         </p>
+                        {account.lastVerificationAttempt && (
+                          <p className="text-xs mt-1">
+                            Last attempt:{" "}
+                            {new Date(
+                              account.lastVerificationAttempt
+                            ).toLocaleString()}
+                          </p>
+                        )}
                       </div>
                     )}
 
-                    {
-                      status === "not_verified" && !isRejected && (
-                        <div
-                          className={`rounded-lg border p-3 ${statusConfig.bgClass}`}
+                    {status === "not_verified" && !isRejected && (
+                      <div
+                        className={`rounded-lg border p-3 ${statusConfig.bgClass}`}
+                      >
+                        <p className="text-sm mb-2">
+                          This bank account has not been verified yet. Click
+                          below to start verification.
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={verifyingId === account._id}
+                          onClick={async () => {
+                            try {
+                              setVerifyingId(account._id);
+                              toast.success(
+                                "Bank account verification requested!"
+                              );
+                              await loadAccounts();
+                            } catch (err) {
+                              console.error(err);
+                              toast.error("Verification request failed");
+                            } finally {
+                              setVerifyingId(null);
+                            }
+                          }}
                         >
-                          <p className="text-sm mb-2">
-                            This bank account has not been verified yet. Click
-                            below to start verification.
-                          </p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={verifyingId === account._id}
-                            onClick={async () => {
-                              try {
-                                setVerifyingId(account._id);
-                                toast.success(
-                                  "Bank account verification requested!"
-                                );
-                                await loadAccounts();
-                              } catch (err) {
-                                console.error(err);
-                                toast.error("Verification request failed");
-                              } finally {
-                                setVerifyingId(null);
-                              }
-                            }}
-                          >
-                            {verifyingId === account._id
-                              ? "Verifying..."
-                              : "Verify Now"}
-                          </Button>
-                        </div>
-                      )
-                    }
-
-                    
+                          {verifyingId === account._id
+                            ? "Verifying..."
+                            : "Verify Now"}
+                        </Button>
+                      </div>
+                    )}
 
                     {isRejected && (
                       <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 space-y-3">
-                        <p className="text-sm text-destructive font-medium">
-                          Account Rejected by Admin.
-                        </p>
-                        {/* <p className="text-sm">
-                          {account.rejectionReason || "No reason provided"}
-                         </p> */}
+                        <div className="flex justify-between items-start">
+                          <p className="text-sm text-destructive font-medium">
+                            Account Rejected by Admin.
+                          </p>
+                          {account.rejectedAt && (
+                            <Badge variant="destructive" className="text-xs">
+                              {new Date(
+                                account.rejectedAt
+                              ).toLocaleDateString()}
+                            </Badge>
+                          )}
+                        </div>
+                        {account.rejectionReason && (
+                          <p className="text-sm">
+                            <span className="font-medium">Reason:</span>{" "}
+                            {account.rejectionReason}
+                          </p>
+                        )}
                       </div>
                     )}
 
@@ -357,44 +419,6 @@ const BankStatus = () => {
           })
         )}
       </div>
-
-      {showAddCta && (
-        <Card className="bg-secondary/50">
-          <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <h3 className="font-semibold mb-1">Add Bank Account</h3>
-                <p className="text-sm text-muted-foreground">
-                  Add a new bank account for transactions
-                </p>
-              </div>
-              <Link to="/add-bank">
-                <Button className="gap-2">
-                  Add Bank Account
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <Card className="border-dashed bg-primary/5 border-primary/20">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-3">
-            <CheckCircle className="h-5 w-5 text-success mt-0.5" />
-            <div>
-              <p className="font-medium mb-1">Why verify your bank?</p>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Required for refunds and payouts</li>
-                <li>• Enables automatic payment processing</li>
-                <li>• Ensures secure transactions</li>
-                <li>• Verified through Cashfree's secure gateway</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog

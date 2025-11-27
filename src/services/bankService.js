@@ -21,6 +21,17 @@ export const listBankAccounts = async () => {
     return res.data;
 };
 
+// Update a bank account
+export const updateBankAccount = async (accountId, { accountHolderName, accountNumber, ifsc, phone }) => {
+    const res = await apiService.put(`bank/${accountId}`, {
+        accountHolderName,
+        accountNumber,
+        ifsc,
+        phone
+    }, { showSuccess: true });
+    return res.data;
+};
+
 // Verify a specific bank account
 export const verifyBankAccount = async (accountId, payload = {}) => {
     const res = await apiService.post(`bank/verify/${accountId}`, payload, { showSuccess: true });
