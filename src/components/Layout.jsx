@@ -56,7 +56,7 @@ const Layout = ({ children }) => {
 
   const navItems = [
     { icon: Home, label: "Dashboard", path: "/" },
-    { icon: FileCheck, label: "KYC", path: "/kyc-verification" },
+    // { icon: FileCheck, label: "KYC", path: "/kyc-verification" },
     { icon: Wallet, label: "Bank", path: "/bank-status" },
     // Money Transfer section will be inserted here
     // Utility Payment section will be inserted here

@@ -157,19 +157,19 @@ const AddBank = () => {
     <div className="w-full pb-16 md:pb-6">
       {/* Page Heading */}
       <div className="mb-6">
-        <h1 className="text-4xl font-bold mb-2">Add Bank Details</h1>
-        <p className="text-muted-foreground text-lg">
-          Link your bank account for seamless transactions
-        </p>
         <Link
           to="/bank-status"
           className="text-sm text-primary hover:underline"
         >
           ← Back to Bank Accounts
         </Link>
+        <h1 className="text-4xl font-bold mb-2">Add Bank Details</h1>
+        <p className="text-muted-foreground text-lg">
+          Link your bank account for seamless transactions
+        </p>
       </div>
 
-      <div className="max-w-2xl">
+      <div className="max-w-1xl ">
         <div className="space-y-6">
           {/* Security Notice */}
           <Card className="shadow-medium border-2 border-green-400/30">
