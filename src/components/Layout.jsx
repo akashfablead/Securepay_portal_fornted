@@ -58,6 +58,7 @@ const Layout = ({ children }) => {
     { icon: Home, label: "Dashboard", path: "/" },
     // { icon: FileCheck, label: "KYC", path: "/kyc-verification" },
     { icon: Wallet, label: "Bank", path: "/bank-status" },
+
     // Money Transfer section will be inserted here
     // Utility Payment section will be inserted here
     {
@@ -68,9 +69,8 @@ const Layout = ({ children }) => {
     ...(isMasterDistributor
       ? [{ icon: Users, label: "Retailers", path: "/master/retailers" }]
       : []),
+
     { icon: User, label: "Profile", path: "/profile" },
-    { icon: HelpCircle, label: "Support", path: "/support" },
-    // Demo page for transaction details
   ];
 
   const handleLogout = () => {
@@ -156,8 +156,9 @@ const Layout = ({ children }) => {
                       <Button
                         variant="ghost"
                         className={`w-full justify-between gap-3 py-5 text-base transition-all ${
-                          location.pathname.includes("/bank-verification-status") ||
-                          location.pathname.includes("/payout-history")
+                          location.pathname.includes(
+                            "/bank-verification-status"
+                          ) || location.pathname.includes("/payout-history")
                             ? "bg-secondary text-secondary-foreground shadow-soft"
                             : "hover:bg-accent hover:text-accent-foreground"
                         }`}
@@ -178,7 +179,9 @@ const Layout = ({ children }) => {
                       {moneyTransferOpen && (
                         <div className="ml-8 mt-1 space-y-1">
                           <Button
-                            onClick={() => navigate("/bank-verification-status")}
+                            onClick={() =>
+                              navigate("/bank-verification-status")
+                            }
                             variant={
                               location.pathname === "/bank-verification-status"
                                 ? "secondary"
@@ -294,7 +297,7 @@ const Layout = ({ children }) => {
               }
 
               // Skip rendering the Bank item again and the next two items since we already rendered them
-              if (index === 3 || index === 4) {
+              if (index === 1) {
                 return null;
               }
 

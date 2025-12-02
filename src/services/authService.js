@@ -47,6 +47,7 @@ export const updateUserProfile = async (profileData) => {
     "state",
     "country",
     "pincode",
+    "fullName"
   ];
   for (const key of allowed) {
     if (profileData[key] !== undefined && profileData[key] !== null) {
@@ -101,11 +102,7 @@ export const listManagedUsers = async ({ page, limit, search, status, role } = {
   return res.data;
 };
 
-export const createRetailerAccount = async ({ name, email, password }) => {
-  const formData = new FormData();
-  formData.append("name", name);
-  formData.append("email", email);
-  formData.append("password", password);
+export const createRetailerAccount = async (formData) => {
   const res = await apiService.post(API.ENDPOINTS.createRetailer, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
@@ -125,3 +122,39 @@ export const updateUserStatus = async ({ userId, isActive }) => {
   return res.data?.data;
 };
 
+// Get user details
+export const getUserDetails = async (userId) => {
+  const endpoint = API.ENDPOINTS.adminUserDetails.replace(":userId", userId);
+  const res = await apiService.get(endpoint);
+  return res.data?.data;
+};
+
+// Update user details
+export const updateUserDetails = async (userId, userData) => {
+  const endpoint = API.ENDPOINTS.adminUserDetails.replace(":userId", userId);
+  const formData = new FormData();
+
+  // Add user data to form
+  Object.keys(userData).forEach(key => {
+    if (userData[key] !== undefined && userData[key] !== null) {
+      formData.append(key, userData[key]);
+    }
+  });
+
+  const res = await apiService.put(endpoint, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+    showSuccess: true
+  });
+  return res.data?.data;
+};
+
+// Reset user password
+export const resetUserPassword = async (userId, newPassword) => {
+  const endpoint = API.ENDPOINTS.adminUserStatus.replace(":userId", userId);
+  const res = await apiService.patch(
+    endpoint,
+    { newPassword },
+    { showSuccess: true }
+  );
+  return res.data?.data;
+};

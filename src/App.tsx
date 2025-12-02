@@ -20,6 +20,8 @@ import Profile from "./pages/Profile";
 import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
 import MasterRetailers from "./pages/MasterRetailers";
+import RetailerDetails from "./pages/RetailerDetails";
+import AddRetailer from "./pages/AddRetailer";
 import MasterPayout from "./pages/MasterPayout";
 import PayoutHistory from "./pages/PayoutHistory";
 import ConsolidatedReports from "./pages/ConsolidatedReports";
@@ -238,6 +240,34 @@ const App = () => {
                   isAuthenticated ? (
                     isMaster ? (
                       <MasterRetailers />
+                    ) : (
+                      <Navigate to="/" replace />
+                    )
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
+                path="/retailers/add"
+                element={
+                  isAuthenticated ? (
+                    isMaster ? (
+                      <AddRetailer />
+                    ) : (
+                      <Navigate to="/" replace />
+                    )
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
+                path="/master/retailers/:id"
+                element={
+                  isAuthenticated ? (
+                    isMaster ? (
+                      <RetailerDetails />
                     ) : (
                       <Navigate to="/" replace />
                     )

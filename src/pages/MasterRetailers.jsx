@@ -33,13 +33,6 @@ const MasterRetailers = () => {
   const [retailers, setRetailers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newRetailer, setNewRetailer] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    password: "",
-  });
   const [creating, setCreating] = useState(false);
 
   const {
@@ -54,7 +47,8 @@ const MasterRetailers = () => {
     try {
       setLoading(true);
       const data = await listManagedUsers({ role: "retailer" });
-      setRetailers(data?.users || []);
+      // Updated to handle the new data structure
+      setRetailers(data?.items || data?.users || []);
     } catch (err) {
       console.error(err);
       toast.error("Failed to load retailers");
@@ -71,7 +65,9 @@ const MasterRetailers = () => {
     (retailer) =>
       retailer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       retailer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      retailer.phone.includes(searchTerm)
+      (retailer.personalDetails?.mobileNumber || retailer.phone || "").includes(
+        searchTerm
+      )
   );
 
   const handleCreateRetailer = async (e) => {
@@ -144,7 +140,7 @@ const MasterRetailers = () => {
             Manage your retailer accounts and onboarding
           </p>
         </div>
-        <Button onClick={() => setShowAddForm(true)} className="gap-2">
+        <Button onClick={() => navigate("/retailers/add")} className="gap-2">
           <Plus className="h-4 w-4" />
           Add Retailer
         </Button>
@@ -171,88 +167,6 @@ const MasterRetailers = () => {
                 </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Add Retailer Form */}
-      {showAddForm && (
-        <Card className="shadow-medium">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Add New Retailer
-            </CardTitle>
-            <CardDescription>
-              Create a new retailer account under your master account
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleCreateRetailer} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name *</Label>
-                  <Input
-                    id="name"
-                    value={newRetailer.name}
-                    onChange={(e) =>
-                      setNewRetailer({ ...newRetailer, name: e.target.value })
-                    }
-                    placeholder="Enter full name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={newRetailer.email}
-                    onChange={(e) =>
-                      setNewRetailer({ ...newRetailer, email: e.target.value })
-                    }
-                    placeholder="Enter email address"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Mobile Number *</Label>
-                  <Input
-                    id="phone"
-                    value={newRetailer.phone}
-                    onChange={(e) =>
-                      setNewRetailer({ ...newRetailer, phone: e.target.value })
-                    }
-                    placeholder="Enter 10-digit mobile number"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password *</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={newRetailer.password}
-                    onChange={(e) =>
-                      setNewRetailer({
-                        ...newRetailer,
-                        password: e.target.value,
-                      })
-                    }
-                    placeholder="Enter password (min. 6 characters)"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowAddForm(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={creating}>
-                  {creating ? "Creating..." : "Create Retailer"}
-                </Button>
-              </div>
-            </form>
           </CardContent>
         </Card>
       )}
@@ -297,7 +211,7 @@ const MasterRetailers = () => {
                   : "Get started by adding a new retailer."}
               </p>
               <Button
-                onClick={() => setShowAddForm(true)}
+                onClick={() => navigate("/retailers/add")}
                 className="mt-4"
                 disabled={!canTransact}
               >
@@ -323,10 +237,13 @@ const MasterRetailers = () => {
                           <Mail className="h-3 w-3" />
                           {retailer.email}
                         </div>
-                        <div className="hidden sm:block">•</div>
                         <div className="flex items-center gap-1">
-                          <Phone className="h-3 w-3" />
-                          {retailer.phone}
+                          <Shield className="h-3 w-3" />
+                          {retailer.isActive ? (
+                            <span className="text-success">Active</span>
+                          ) : (
+                            <span className="text-destructive">Inactive</span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -343,7 +260,7 @@ const MasterRetailers = () => {
                         navigate(`/master/retailers/${retailer._id}`)
                       }
                     >
-                      View
+                      View Details
                     </Button>
                   </div>
                 </div>
