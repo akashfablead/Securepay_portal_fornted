@@ -3,13 +3,14 @@ import { toast } from "sonner";
 
 
 // Add a bank account
-export const addBankAccount = async ({ accountHolderName, accountNumber, ifsc, phone, accountType = "savings" }) => {
+export const addBankAccount = async ({ accountHolderName, accountNumber, ifsc, phone, accountType = "savings", bankName }) => {
     const form = new FormData();
     form.append("accountHolderName", accountHolderName);
     form.append("accountNumber", accountNumber);
     form.append("ifsc", ifsc);
     if (phone) form.append("phone", phone);
     if (accountType) form.append("accountType", accountType);
+    if (bankName) form.append("bankName", bankName);
 
     const res = await apiService.post("bank", form, { headers: { "Content-Type": "multipart/form-data" }, showSuccess: true });
     return res.data;
@@ -22,12 +23,13 @@ export const listBankAccounts = async () => {
 };
 
 // Update a bank account
-export const updateBankAccount = async (accountId, { accountHolderName, accountNumber, ifsc, phone }) => {
+export const updateBankAccount = async (accountId, { accountHolderName, accountNumber, ifsc, phone, bankName }) => {
     const res = await apiService.put(`bank/${accountId}`, {
         accountHolderName,
         accountNumber,
         ifsc,
-        phone
+        phone,
+        bankName
     }, { showSuccess: true });
     return res.data;
 };

@@ -100,6 +100,36 @@ const AddRetailer = () => {
     error: verificationError,
   } = useVerificationGate();
 
+  // Auto-fill city and state based on pincode
+  const autoFillLocationDetails = async (pincode, type) => {
+    try {
+      const response = await fetch(
+        `https://api.postalpincode.in/pincode/${pincode}`
+      );
+      const data = await response.json();
+
+      if (
+        data &&
+        data[0] &&
+        data[0].Status === "Success" &&
+        data[0].PostOffice &&
+        data[0].PostOffice.length > 0
+      ) {
+        const postOffice = data[0].PostOffice[0];
+        const city = postOffice.District || postOffice.Block || "";
+        const state = postOffice.State || "";
+
+        setFormData((prev) => ({
+          ...prev,
+          [`${type}City`]: city,
+          [`${type}State`]: state,
+        }));
+      }
+    } catch (error) {
+      console.log("Could not fetch location details for pincode:", pincode);
+    }
+  };
+
   // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -107,6 +137,34 @@ const AddRetailer = () => {
       ...prev,
       [name]: value,
     }));
+
+    // Auto-fill city and state based on pincode
+    if (name === "personalPincode" && value.length === 6) {
+      autoFillLocationDetails(value, "personal");
+    }
+
+    if (name === "officePincode" && value.length === 6) {
+      autoFillLocationDetails(value, "office");
+    }
+
+    // Auto-fill bank name based on IFSC code
+    if (name === "bankIFSC" && value.length === 11) {
+      try {
+        fetch(`https://ifsc.razorpay.com/${value}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data && data.BANK) {
+              setFormData((prev) => ({
+                ...prev,
+                bankName: data.BANK,
+              }));
+            }
+          })
+          .catch((err) => console.log("Could not fetch bank details:", err));
+      } catch (error) {
+        console.log("Could not fetch bank details for IFSC:", value);
+      }
+    }
   };
 
   // Handle file uploads
@@ -548,16 +606,6 @@ const AddRetailer = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="personalCity">City *</Label>
-                <Input
-                  id="personalCity"
-                  name="personalCity"
-                  value={formData.personalCity}
-                  onChange={handleInputChange}
-                  placeholder="Enter city"
-                />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="personalPincode">Pincode *</Label>
                 <Input
                   id="personalPincode"
@@ -568,24 +616,29 @@ const AddRetailer = () => {
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="personalCity">City *</Label>
+                <Input
+                  id="personalCity"
+                  name="personalCity"
+                  value={formData.personalCity}
+                  onChange={handleInputChange}
+                  placeholder="Auto-filled from pincode"
+                  readOnly
+                  disabled
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="personalState">State *</Label>
-                <Select
+                <Input
+                  id="personalState"
+                  name="personalState"
                   value={formData.personalState}
-                  onValueChange={(value) =>
-                    handleSelectChange(value, "personalState")
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select state" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {INDIAN_STATES.map((state) => (
-                      <SelectItem key={state} value={state}>
-                        {state}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onChange={handleInputChange}
+                  placeholder="Auto-filled from pincode"
+                  readOnly
+                  disabled
+                />
               </div>
             </div>
           </div>
@@ -606,16 +659,6 @@ const AddRetailer = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="officeCity">City *</Label>
-                <Input
-                  id="officeCity"
-                  name="officeCity"
-                  value={formData.officeCity}
-                  onChange={handleInputChange}
-                  placeholder="Enter city"
-                />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="officePincode">Pincode *</Label>
                 <Input
                   id="officePincode"
@@ -626,24 +669,29 @@ const AddRetailer = () => {
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="officeCity">City *</Label>
+                <Input
+                  id="officeCity"
+                  name="officeCity"
+                  value={formData.officeCity}
+                  onChange={handleInputChange}
+                  placeholder="Auto-filled from pincode"
+                  readOnly
+                  disabled
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="officeState">State *</Label>
-                <Select
+                <Input
+                  id="officeState"
+                  name="officeState"
                   value={formData.officeState}
-                  onValueChange={(value) =>
-                    handleSelectChange(value, "officeState")
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select state" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {INDIAN_STATES.map((state) => (
-                      <SelectItem key={state} value={state}>
-                        {state}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onChange={handleInputChange}
+                  placeholder="Auto-filled from pincode"
+                  readOnly
+                  disabled
+                />
               </div>
             </div>
           </div>
@@ -654,16 +702,6 @@ const AddRetailer = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="bankName">Bank Name *</Label>
-                <Input
-                  id="bankName"
-                  name="bankName"
-                  value={formData.bankName}
-                  onChange={handleInputChange}
-                  placeholder="Enter bank name"
-                />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="bankIFSC">Bank IFSC *</Label>
                 <Input
                   id="bankIFSC"
@@ -671,6 +709,18 @@ const AddRetailer = () => {
                   value={formData.bankIFSC}
                   onChange={handleInputChange}
                   placeholder="Enter IFSC code"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bankName">Bank Name *</Label>
+                <Input
+                  id="bankName"
+                  name="bankName"
+                  value={formData.bankName}
+                  onChange={handleInputChange}
+                  placeholder="auto-filled from IFSC"
+                  readOnly
+                  disabled
                 />
               </div>
               <div className="space-y-2">

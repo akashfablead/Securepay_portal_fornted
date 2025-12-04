@@ -22,6 +22,11 @@ import {
   Ban,
   Eye,
   EyeOff,
+  FileText,
+  Briefcase,
+  Building2,
+  CreditCard,
+  FileImage,
 } from "lucide-react";
 import {
   getUserDetails,
@@ -56,7 +61,6 @@ const RetailerDetails = () => {
       const data = await getUserDetails(id);
       setRetailer(data);
 
-      // Initialize form data with retailer details
       setFormData({
         name: data?.user?.name || "",
         email: data?.user?.email || "",
@@ -84,7 +88,6 @@ const RetailerDetails = () => {
   };
 
   const handleCancel = () => {
-    // Reset form data to original values
     setFormData({
       name: retailer?.user?.name || "",
       email: retailer?.user?.email || "",
@@ -106,7 +109,6 @@ const RetailerDetails = () => {
     try {
       setUpdating(true);
 
-      // Prepare user data for update
       const userData = {
         name: formData.name,
         email: formData.email,
@@ -123,7 +125,6 @@ const RetailerDetails = () => {
       await updateUserDetails(id, userData);
       toast.success("Retailer details updated successfully");
 
-      // Reload retailer details
       await loadRetailerDetails();
       setEditing(false);
     } catch (err) {
@@ -135,6 +136,7 @@ const RetailerDetails = () => {
       setUpdating(false);
     }
   };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-IN", {
       year: "numeric",
@@ -142,6 +144,17 @@ const RetailerDetails = () => {
       day: "numeric",
     });
   };
+
+  const isImageFile = (url) => {
+    if (!url) return false;
+    const imageExtensions = ["jpg", "jpeg", "png", "gif", "webp", "bmp"];
+    const ext = url.split(".").pop().toLowerCase();
+    return imageExtensions.includes(ext);
+  };
+
+  const personalDetails = retailer?.user?.personalDetails || {};
+  const documentUrls = retailer?.user?.documentUrls || {};
+  const kycStatus = retailer?.kyc;
 
   if (loading) {
     return (
@@ -184,232 +197,413 @@ const RetailerDetails = () => {
             View and manage retailer account information
           </p>
         </div>
-        {/* {!editing && <Button onClick={handleEdit}>Edit Details</Button>} */}
       </div>
 
-      {/* Retailer Info Card */}
+      {retailer?.user?.profileImageUrl && (
+        <Card className="shadow-soft">
+          <CardContent className="pt-6">
+            <div className="flex justify-center">
+              <img
+                src={retailer.user.profileImageUrl}
+                alt="Profile"
+                className="h-32 w-32 rounded-full object-cover border-4 border-border"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="shadow-soft">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
-            Retailer Information
+            Basic Information
           </CardTitle>
-          <CardDescription>
-            Basic information about the retailer account
-          </CardDescription>
+          <CardDescription>Core retailer account information</CardDescription>
         </CardHeader>
         <CardContent>
-          {editing ? (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    placeholder="Enter full name"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    placeholder="Enter email address"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Mobile Number</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phone: e.target.value })
-                    }
-                    placeholder="Enter mobile number"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Input
-                    id="address"
-                    value={formData.address}
-                    onChange={(e) =>
-                      setFormData({ ...formData, address: e.target.value })
-                    }
-                    placeholder="Enter address"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    value={formData.city}
-                    onChange={(e) =>
-                      setFormData({ ...formData, city: e.target.value })
-                    }
-                    placeholder="Enter city"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="state">State</Label>
-                  <Input
-                    id="state"
-                    value={formData.state}
-                    onChange={(e) =>
-                      setFormData({ ...formData, state: e.target.value })
-                    }
-                    placeholder="Enter state"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="country">Country</Label>
-                  <Input
-                    id="country"
-                    value={formData.country}
-                    onChange={(e) =>
-                      setFormData({ ...formData, country: e.target.value })
-                    }
-                    placeholder="Enter country"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="pincode">Pincode</Label>
-                  <Input
-                    id="pincode"
-                    value={formData.pincode}
-                    onChange={(e) =>
-                      setFormData({ ...formData, pincode: e.target.value })
-                    }
-                    placeholder="Enter pincode"
-                  />
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Full Name
+                </h3>
+                <p className="font-medium">{retailer?.user?.name || "N/A"}</p>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleCancel}
-                  disabled={updating}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={updating}>
-                  {updating ? "Updating..." : "Save Changes"}
-                </Button>
-              </div>
-            </form>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">
-                    Full Name
-                  </h3>
-                  <p className="font-medium">{retailer?.user?.name || "N/A"}</p>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">
-                    Email Address
-                  </h3>
-                  <p>{retailer?.user?.email || "N/A"}</p>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">
-                    Mobile Number
-                  </h3>
-                  <p>
-                    {retailer?.user?.personalDetails?.mobileNumber || "N/A"}
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">
-                    Account Status
-                  </h3>
-                  <div className="flex items-center gap-2">
-                    {retailer?.user?.isActive ? (
-                      <>
-                        <CheckCircle className="h-4 w-4 text-success" />
-                        <span className="text-success">Active</span>
-                      </>
-                    ) : (
-                      <>
-                        <Ban className="h-4 w-4 text-destructive" />
-                        <span className="text-destructive">Inactive</span>
-                      </>
-                    )}
-                  </div>
-                </div>
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Email Address
+                </h3>
+                <p>{retailer?.user?.email || "N/A"}</p>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">
-                    Address
-                  </h3>
-                  <p>{retailer?.user?.personalDetails?.address || "N/A"}</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground">
-                      City
-                    </h3>
-                    <p>{retailer?.user?.personalDetails?.city || "N/A"}</p>
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground">
-                      State
-                    </h3>
-                    <p>{retailer?.user?.personalDetails?.state || "N/A"}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground">
-                      Country
-                    </h3>
-                    <p>{retailer?.user?.personalDetails?.country || "N/A"}</p>
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground">
-                      Pincode
-                    </h3>
-                    <p>{retailer?.user?.personalDetails?.pincode || "N/A"}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">
-                    Member Since
-                  </h3>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    <span>{formatDate(retailer?.user?.createdAt)}</span>
-                  </div>
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Account Status
+                </h3>
+                <div className="flex items-center gap-2 mt-1">
+                  {retailer?.user?.isActive ? (
+                    <>
+                      <CheckCircle className="h-4 w-4 text-success" />
+                      <span className="text-success">Active</span>
+                    </>
+                  ) : (
+                    <>
+                      <Ban className="h-4 w-4 text-destructive" />
+                      <span className="text-destructive">Inactive</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
-          )}
+
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Member Since
+                </h3>
+                <div className="flex items-center gap-2 mt-1">
+                  <Calendar className="h-4 w-4" />
+                  <span>{formatDate(retailer?.user?.createdAt)}</span>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Role
+                </h3>
+                <p className="capitalize">{retailer?.user?.role || "N/A"}</p>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
+      <Card className="shadow-soft">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Personal Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            <div>
+              <h3 className="font-semibold text-base mb-4">
+                Personal Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Full Name
+                  </h4>
+                  <p>{personalDetails?.fullName || "N/A"}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Date of Birth
+                  </h4>
+                  <p>{formatDate(personalDetails?.dateOfBirth) || "N/A"}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Gender
+                  </h4>
+                  <p className="capitalize">
+                    {personalDetails?.gender || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Marital Status
+                  </h4>
+                  <p className="capitalize">
+                    {personalDetails?.maritalStatus || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Father's Name
+                  </h4>
+                  <p>{personalDetails?.fatherName || "N/A"}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Mother's Name
+                  </h4>
+                  <p>{personalDetails?.motherName || "N/A"}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t pt-6">
+              <h3 className="font-semibold text-base mb-4">Personal Address</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2">
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Address
+                  </h4>
+                  <p>{personalDetails?.personalAddress || "N/A"}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    City
+                  </h4>
+                  <p>{personalDetails?.personalCity || "N/A"}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Pincode
+                  </h4>
+                  <p>{personalDetails?.personalPincode || "N/A"}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    State
+                  </h4>
+                  <p>{personalDetails?.personalState || "N/A"}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t pt-6">
+              <h3 className="font-semibold text-base mb-4">Office Address</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2">
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Address
+                  </h4>
+                  <p>{personalDetails?.officeAddress || "N/A"}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    City
+                  </h4>
+                  <p>{personalDetails?.officeCity || "N/A"}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Pincode
+                  </h4>
+                  <p>{personalDetails?.officePincode || "N/A"}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    State
+                  </h4>
+                  <p>{personalDetails?.officeState || "N/A"}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-soft">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Briefcase className="h-5 w-5" />
+            Employment Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground">
+                Employment Type
+              </h4>
+              <p className="capitalize">
+                {personalDetails?.employmentType || "N/A"}
+              </p>
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground">
+                Company Name
+              </h4>
+              <p>{personalDetails?.companyName || "N/A"}</p>
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground">
+                Business Name
+              </h4>
+              <p>{personalDetails?.businessName || "N/A"}</p>
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground">
+                Retailer Type
+              </h4>
+              <p>{personalDetails?.retailerType || "N/A"}</p>
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground">
+                Tenure
+              </h4>
+              <p>{personalDetails?.tenure || "N/A"}</p>
+            </div>
+
+            <div className="md:col-span-2 border-t pt-4">
+              <h3 className="font-semibold text-sm mb-4">References</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {personalDetails?.referenceName1 && (
+                  <>
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground">
+                        Reference 1 Name
+                      </h4>
+                      <p>{personalDetails.referenceName1}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground">
+                        Reference 1 Mobile
+                      </h4>
+                      <p>{personalDetails.referenceMobile1}</p>
+                    </div>
+                  </>
+                )}
+                {personalDetails?.referenceName2 && (
+                  <>
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground">
+                        Reference 2 Name
+                      </h4>
+                      <p>{personalDetails.referenceName2}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground">
+                        Reference 2 Mobile
+                      </h4>
+                      <p>{personalDetails.referenceMobile2}</p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {personalDetails?.bankName && (
+        <Card className="shadow-soft">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Banking Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground">
+                  Bank Name
+                </h4>
+                <p>{personalDetails.bankName}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground">
+                  IFSC Code
+                </h4>
+                <p>{personalDetails.bankIFSC}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground">
+                  Account Holder Name
+                </h4>
+                <p>{personalDetails.bankAccountHolderName}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground">
+                  Account Number
+                </h4>
+                <p className="font-mono">{personalDetails.bankAccountNumber}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-muted-foreground">
+                  Account Type
+                </h4>
+                <p className="capitalize">{personalDetails.bankAccountType}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {Object.keys(documentUrls).length > 0 && (
+        <Card className="shadow-soft">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileImage className="h-5 w-5" />
+              Documents
+            </CardTitle>
+            <CardDescription>
+              Uploaded KYC and verification documents
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {Object.entries(documentUrls).map(([key, url]) => {
+                if (!url) return null;
+
+                const documentNameMap = {
+                  aadharFrontImage: "Aadhar Front",
+                  aadharBackImage: "Aadhar Back",
+                  bankProof: "Bank Proof",
+                  cancelledCheque: "Cancelled Cheque",
+                  pancardPhoto: "PAN Card",
+                  profilePhoto: "Profile Photo",
+                  academicCertificate: "Academic Certificate",
+                };
+
+                const documentName = documentNameMap[key] || key;
+
+                return (
+                  <div
+                    key={key}
+                    className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+                  >
+                    <div className="h-40 bg-muted flex items-center justify-center overflow-hidden relative group">
+                      {isImageFile(url) ? (
+                        <>
+                          <img
+                            src={url}
+                            alt={documentName}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            onError={(e) => {
+                              e.target.style.display = "none";
+                              e.target.nextElementSibling.style.display =
+                                "flex";
+                            }}
+                          />
+                          <FileText
+                            className="w-12 h-12 text-muted-foreground hidden"
+                            style={{ display: "none" }}
+                          />
+                        </>
+                      ) : (
+                        <FileText className="w-12 h-12 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <p className="font-medium text-sm text-foreground truncate">
+                        {documentName}
+                      </p>
+                      <Button
+                        asChild
+                        variant="link"
+                        className="h-auto p-0 text-xs mt-2"
+                      >
+                        <a href={url} target="_blank" rel="noreferrer">
+                          View Document
+                        </a>
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
